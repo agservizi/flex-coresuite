@@ -50,23 +50,6 @@ if ($rows) {
 $pdo->exec('ALTER TABLE opportunities MODIFY COLUMN opportunity_code VARCHAR(32) NOT NULL');
 $pdo->exec('ALTER TABLE opportunities ADD UNIQUE INDEX IF NOT EXISTS idx_opportunity_code (opportunity_code)');
 
-// Seed catalog (no demo users or opportunities)
-$seedSql = <<<'SQL'
-INSERT INTO gestori (name, active) VALUES
-('FastWave',1),
-('FiberPlus',1),
-('MobileX',0)
-ON DUPLICATE KEY UPDATE name = VALUES(name), active = VALUES(active);
-
-INSERT INTO offers (name, description, commission, manager_id) VALUES
-('FW 100','Fibra 100Mbps',35.00,1),
-('FW 1000','Fibra 1Gbps',55.00,1),
-('FiberPlus Casa','FTTH casa',45.00,2),
-('MobileX Sim Only','Voce + 100GB',22.00,3)
-ON DUPLICATE KEY UPDATE name = VALUES(name), description = VALUES(description), commission = VALUES(commission), manager_id = VALUES(manager_id);
-;
-SQL;
-
-runStatements($pdo, $seedSql);
+// Nessun seed automatico: gestori e offerte vanno inseriti dall'admin.
 
 echo "Migrations and seed completed.\n";

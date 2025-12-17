@@ -16,44 +16,8 @@ function seed_data(): void
         return;
     }
 
-    $pdo = db();
-    $userCount = (int)$pdo->query('SELECT COUNT(*) FROM users')->fetchColumn();
-    if ($userCount > 0) {
-        $bootstrapped = true;
-        return;
-    }
-
-    $pdo->beginTransaction();
-    try {
-        // Gestori
-        $stmtGest = $pdo->prepare('INSERT INTO gestori (name, active) VALUES (:name, :active)');
-        $gestori = [
-            ['name' => 'FastWave', 'active' => 1],
-            ['name' => 'FiberPlus', 'active' => 1],
-            ['name' => 'MobileX', 'active' => 0],
-        ];
-        foreach ($gestori as $g) {
-            $stmtGest->execute($g);
-        }
-
-        // Offers
-        $stmtOffer = $pdo->prepare('INSERT INTO offers (name, description, commission, manager_id) VALUES (:name, :description, :commission, :manager_id)');
-        $offers = [
-            ['name' => 'FW 100', 'description' => 'Fibra 100Mbps', 'commission' => 35.00, 'manager_id' => 1],
-            ['name' => 'FW 1000', 'description' => 'Fibra 1Gbps', 'commission' => 55.00, 'manager_id' => 1],
-            ['name' => 'FiberPlus Casa', 'description' => 'FTTH casa', 'commission' => 45.00, 'manager_id' => 2],
-            ['name' => 'MobileX Sim Only', 'description' => 'Voce + 100GB', 'commission' => 22.00, 'manager_id' => 3],
-        ];
-        foreach ($offers as $offer) {
-            $stmtOffer->execute($offer);
-        }
-
-        $pdo->commit();
-        $bootstrapped = true;
-    } catch (Throwable $e) {
-        $pdo->rollBack();
-        throw $e;
-    }
+    // No auto-seed: gestori e offerte vanno inseriti dall'admin reale.
+    $bootstrapped = true;
 }
 
 function get_users(): array
