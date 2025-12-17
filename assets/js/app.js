@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
+  setupSheetSelects();
   const filterForms = document.querySelectorAll('[data-auto-submit="true"]');
   filterForms.forEach(form => {
     form.addEventListener('change', () => form.submit());
@@ -15,6 +16,90 @@ document.addEventListener('DOMContentLoaded', () => {
 
   setupOfferPicker();
 });
+
+function setupSheetSelects() {
+  const sheet = document.querySelector('[data-sheet-select]');
+  const backdrop = document.querySelector('[data-sheet-select-backdrop]');
+  const list = document.querySelector('[data-sheet-select-list]');
+  const titleEl = document.querySelector('[data-sheet-select-title]');
+  const closeBtn = document.querySelector('[data-sheet-select-close]');
+  if (!sheet || !backdrop || !list || !titleEl) return;
+
+  const open = () => {
+    sheet.classList.add('show');
+    backdrop.classList.add('show');
+    document.body.classList.add('no-scroll');
+  };
+
+  const close = () => {
+    sheet.classList.remove('show');
+    backdrop.classList.remove('show');
+    document.body.classList.remove('no-scroll');
+    list.innerHTML = '';
+    sheet.dataset.activeSelect = '';
+  };
+
+  backdrop.addEventListener('click', close);
+  if (closeBtn) closeBtn.addEventListener('click', close);
+
+  const selects = document.querySelectorAll('select.form-select:not([data-offer-select]):not([data-native-select])');
+  selects.forEach(select => enhanceSelect(select, { open, close, list, titleEl, sheet }));
+}
+
+function enhanceSelect(select, ctx) {
+  if (select.dataset.sheetEnhanced === '1') return;
+
+  const trigger = document.createElement('input');
+  trigger.type = 'text';
+  trigger.readOnly = true;
+  trigger.className = select.className;
+  trigger.classList.add('sheet-trigger');
+  trigger.value = getOptionLabel(select, select.value) || select.getAttribute('data-placeholder') || 'Seleziona';
+
+  select.classList.add('visually-hidden');
+  select.dataset.sheetEnhanced = '1';
+  select.insertAdjacentElement('afterend', trigger);
+
+  trigger.addEventListener('click', () => openSheetForSelect(select, trigger, ctx));
+}
+
+function openSheetForSelect(select, trigger, ctx) {
+  const { open, close, list, titleEl, sheet } = ctx;
+  titleEl.textContent = select.getAttribute('data-sheet-title') || 'Seleziona';
+  list.innerHTML = '';
+  sheet.dataset.activeSelect = select.name || select.id || 'select';
+
+  select.querySelectorAll('option').forEach(opt => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'list-group-item list-group-item-action d-flex justify-content-between align-items-center';
+    btn.dataset.value = opt.value;
+    btn.textContent = opt.textContent;
+    if (opt.value === select.value) {
+      btn.classList.add('active');
+    }
+    btn.addEventListener('click', () => {
+      select.value = opt.value;
+      trigger.value = opt.textContent;
+      // fire change event so auto-submit filters still work
+      const evt = new Event('change', { bubbles: true });
+      select.dispatchEvent(evt);
+      close();
+    });
+    list.appendChild(btn);
+  });
+
+  open();
+}
+
+function getOptionLabel(select, value) {
+  if (typeof CSS !== 'undefined' && CSS.escape) {
+    const opt = select.querySelector(`option[value="${CSS.escape(value)}"]`);
+    return opt ? opt.textContent : '';
+  }
+  const opt = Array.from(select.options).find(o => o.value === value);
+  return opt ? opt.textContent : '';
+}
 
 function setupOfferPicker() {
   const trigger = document.querySelector('[data-offer-picker-trigger]');

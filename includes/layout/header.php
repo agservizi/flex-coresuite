@@ -33,3 +33,12 @@ $pageTitle = $pageTitle ?? APP_NAME;
     </header>
     <main class="app-main">
         <div class="container-fluid px-3 py-3">
+    <div class="sheet-backdrop" data-sheet-select-backdrop></div>
+    <div class="sheet" data-sheet-select>
+        <div class="sheet-handle"></div>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="fw-bold" data-sheet-select-title>Seleziona</div>
+            <button type="button" class="btn btn-sm btn-outline-secondary" data-sheet-select-close>Chiudi</button>
+        </div>
+        <div class="list-group" data-sheet-select-list></div>
+    </div>

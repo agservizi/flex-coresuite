@@ -176,6 +176,10 @@ body.no-scroll {
     cursor: pointer;
 }
 
+.sheet-trigger {
+    cursor: pointer;
+}
+
 .offer-option {
     background: transparent;
     color: var(--text-body);

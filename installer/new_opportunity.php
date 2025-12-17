@@ -82,7 +82,7 @@ include __DIR__ . '/../includes/layout/header.php';
             <label for="last_name">Cognome</label>
         </div>
         <div class="form-floating mb-3 position-relative">
-            <select class="visually-hidden position-absolute" style="opacity:0; height:0; width:0; pointer-events:none;" id="offer_id" name="offer_id" data-offer-select>
+            <select class="visually-hidden position-absolute" style="opacity:0; height:0; width:0; pointer-events:none;" id="offer_id" name="offer_id" data-offer-select data-native-select>
                 <option value="">Seleziona offerta</option>
                 <?php foreach ($offers as $offer): ?>
                     <option value="<?php echo $offer['id']; ?>"><?php echo sanitize($offer['name'] . ' · € ' . number_format($offer['commission'], 2, ',', '.')); ?></option>
