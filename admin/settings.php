@@ -61,7 +61,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else {
                 try {
                     create_installer($name, $emailRaw, $password);
-                    $message = 'Installer creato';
+                    notify_installer_credentials($name, $emailRaw, $password);
+                    $message = 'Installer creato e email inviata';
                 } catch (InvalidArgumentException $e) {
                     $error = $e->getMessage();
                 } catch (Throwable $e) {

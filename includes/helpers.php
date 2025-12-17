@@ -143,3 +143,32 @@ function notify_new_opportunity_email(array $op): void
 
     send_resend_email($to, $subject, $html, $text);
 }
+
+function notify_installer_credentials(string $name, string $email, string $password): void
+{
+    if (!$email) {
+        return;
+    }
+    $loginUrl = getenv('APP_URL') ?: (getenv('BASE_URL') ?: '/auth/login.php');
+    if (!str_contains($loginUrl, 'http')) {
+        $loginUrl = rtrim($loginUrl, '/') . '/auth/login.php';
+    }
+
+    $subject = 'Benvenuto in Flex - credenziali di accesso';
+    $html = '<p>Ciao ' . htmlspecialchars($name) . ',</p>' .
+        '<p>Il tuo account installer è stato creato.</p>' .
+        '<ul>' .
+        '<li><strong>Email:</strong> ' . htmlspecialchars($email) . '</li>' .
+        '<li><strong>Password:</strong> ' . htmlspecialchars($password) . '</li>' .
+        '</ul>' .
+        '<p>Accedi da: <a href="' . htmlspecialchars($loginUrl) . '">' . htmlspecialchars($loginUrl) . '</a></p>' .
+        '<p>Per sicurezza, cambia la password al primo accesso.</p>';
+
+    $text = "Ciao $name,\nIl tuo account installer è stato creato.\n" .
+        'Email: ' . $email . "\n" .
+        'Password: ' . $password . "\n" .
+        'Login: ' . $loginUrl . "\n" .
+        'Cambia la password al primo accesso.';
+
+    send_resend_email($email, $subject, $html, $text);
+}
