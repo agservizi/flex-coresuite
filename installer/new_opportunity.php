@@ -24,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = 'Verifica lunghezza dei campi.';
         } else {
             try {
-                add_opportunity([
+                $created = add_opportunity([
                     'first_name' => $first,
                     'last_name' => $last,
                     'notes' => $notes,
@@ -32,6 +32,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'installer_id' => $user['id'],
                     'installer_name' => $user['name'],
                 ]);
+                $created['installer_email'] = $user['email'] ?? '';
+                notify_new_opportunity_email($created);
                 $message = 'Opportunity creata con successo';
             } catch (Throwable $e) {
                 $error = 'Errore durante il salvataggio. ' . $e->getMessage();

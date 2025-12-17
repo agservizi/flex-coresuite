@@ -45,6 +45,28 @@ function get_offers(): array
     return db()->query($sql)->fetchAll();
 }
 
+function create_installer(string $name, string $email, string $password): int
+{
+    seed_data();
+    $pdo = db();
+
+    $stmtCheck = $pdo->prepare('SELECT id FROM users WHERE email = :email LIMIT 1');
+    $stmtCheck->execute(['email' => $email]);
+    if ($stmtCheck->fetch()) {
+        throw new InvalidArgumentException('Email già esistente');
+    }
+
+    $hash = password_hash($password, PASSWORD_DEFAULT);
+    $stmt = $pdo->prepare('INSERT INTO users (role, name, email, password) VALUES (:role, :name, :email, :password)');
+    $stmt->execute([
+        'role' => 'installer',
+        'name' => $name,
+        'email' => $email,
+        'password' => $hash,
+    ]);
+    return (int)$pdo->lastInsertId();
+}
+
 function get_gestori(): array
 {
     seed_data();
