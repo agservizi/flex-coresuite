@@ -22,6 +22,12 @@ if (!is_file($schemaPath)) {
 $schemaSql = file_get_contents($schemaPath);
 runStatements($pdo, $schemaSql);
 
+// Ensure password reset columns exist and password is nullable
+$pdo->exec('ALTER TABLE users MODIFY COLUMN password VARCHAR(255) NULL');
+$pdo->exec('ALTER TABLE users ADD COLUMN IF NOT EXISTS password_reset_token VARCHAR(255) NULL');
+$pdo->exec('ALTER TABLE users ADD COLUMN IF NOT EXISTS password_reset_expires DATETIME NULL');
+$pdo->exec('CREATE INDEX IF NOT EXISTS idx_user_reset_token ON users (password_reset_token)');
+
 // Ensure opportunity_code column exists and is populated uniquely
 $pdo->exec('ALTER TABLE opportunities ADD COLUMN IF NOT EXISTS opportunity_code VARCHAR(32) NULL AFTER id');
 

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="240" height="72" viewBox="0 0 240 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="flexGrad" x1="0" y1="0" x2="240" y2="72" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0d6efd" />
+      <stop offset="1" stop-color="#4dabf7" />
+    </linearGradient>
+    <filter id="softShadow" x="-10%" y="-10%" width="120%" height="120%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#0d6efd" flood-opacity="0.18" />
+    </filter>
+  </defs>
+  <rect x="10" y="10" width="220" height="52" rx="14" fill="#f8fbff" stroke="#dce9ff" stroke-width="1.5" />
+  <text x="32" y="48" fill="url(#flexGrad)" font-family="'Inter', 'Segoe UI', system-ui, sans-serif" font-weight="800" font-size="36" letter-spacing="1" filter="url(#softShadow)">FLEX</text>
+  <circle cx="200" cy="36" r="8" fill="#0d6efd" opacity="0.18" />
+  <circle cx="214" cy="30" r="5" fill="#4dabf7" opacity="0.28" />
+</svg>

@@ -45,7 +45,7 @@ function get_offers(): array
     return db()->query($sql)->fetchAll();
 }
 
-function create_installer(string $name, string $email, string $password): int
+function create_installer(string $name, string $email, ?string $password = null, bool $forceReset = false): array
 {
     seed_data();
     $pdo = db();
@@ -56,7 +56,7 @@ function create_installer(string $name, string $email, string $password): int
         throw new InvalidArgumentException('Email già esistente');
     }
 
-    $hash = password_hash($password, PASSWORD_DEFAULT);
+    $hash = $password && !$forceReset ? password_hash($password, PASSWORD_DEFAULT) : null;
     $stmt = $pdo->prepare('INSERT INTO users (role, name, email, password) VALUES (:role, :name, :email, :password)');
     $stmt->execute([
         'role' => 'installer',
@@ -64,7 +64,65 @@ function create_installer(string $name, string $email, string $password): int
         'email' => $email,
         'password' => $hash,
     ]);
-    return (int)$pdo->lastInsertId();
+    $id = (int)$pdo->lastInsertId();
+
+    $token = null;
+    if ($forceReset || !$hash) {
+        $token = generate_password_reset($id, $pdo);
+    }
+
+    return ['id' => $id, 'reset_token' => $token];
+}
+
+function generate_password_reset(int $userId, ?PDO $pdo = null, int $ttlMinutes = 1440): string
+{
+    $pdo = $pdo ?: db();
+    $token = bin2hex(random_bytes(32));
+    $expires = (new DateTimeImmutable())->modify("+{$ttlMinutes} minutes")->format('Y-m-d H:i:s');
+    $stmt = $pdo->prepare('UPDATE users SET password_reset_token = :t, password_reset_expires = :e WHERE id = :id');
+    $stmt->execute(['t' => $token, 'e' => $expires, 'id' => $userId]);
+    return $token;
+}
+
+function find_user_by_reset_token(string $token): ?array
+{
+    seed_data();
+    $stmt = db()->prepare('SELECT id, role, name, email, password_reset_expires FROM users WHERE password_reset_token = :token LIMIT 1');
+    $stmt->execute(['token' => $token]);
+    $user = $stmt->fetch();
+    if (!$user) {
+        return null;
+    }
+    if (empty($user['password_reset_expires']) || new DateTimeImmutable($user['password_reset_expires']) < new DateTimeImmutable()) {
+        return null;
+    }
+    return $user;
+}
+
+function set_user_password_with_token(string $token, string $password): void
+{
+    seed_data();
+    $pdo = db();
+    $pdo->beginTransaction();
+    try {
+        $stmt = $pdo->prepare('SELECT id, password_reset_expires FROM users WHERE password_reset_token = :t LIMIT 1 FOR UPDATE');
+        $stmt->execute(['t' => $token]);
+        $user = $stmt->fetch();
+        if (!$user) {
+            throw new InvalidArgumentException('Token non valido');
+        }
+        if (empty($user['password_reset_expires']) || new DateTimeImmutable($user['password_reset_expires']) < new DateTimeImmutable()) {
+            throw new InvalidArgumentException('Token scaduto');
+        }
+
+        $hash = password_hash($password, PASSWORD_DEFAULT);
+        $upd = $pdo->prepare('UPDATE users SET password = :p, password_reset_token = NULL, password_reset_expires = NULL WHERE id = :id');
+        $upd->execute(['p' => $hash, 'id' => $user['id']]);
+        $pdo->commit();
+    } catch (Throwable $e) {
+        $pdo->rollBack();
+        throw $e;
+    }
 }
 
 function get_gestori(): array

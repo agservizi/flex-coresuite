@@ -50,19 +50,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (isset($_POST['entity']) && $_POST['entity'] === 'installer') {
             $name = sanitize($_POST['name'] ?? '');
             $emailRaw = trim($_POST['email'] ?? '');
-            $password = $_POST['password'] ?? '';
 
             if (!$name || strlen($name) > 120) {
                 $error = 'Nome installer non valido';
             } elseif (!filter_var($emailRaw, FILTER_VALIDATE_EMAIL)) {
                 $error = 'Email non valida';
-            } elseif (strlen($password) < 8 || strlen($password) > 128) {
-                $error = 'Password non valida (min 8)';
             } else {
                 try {
-                    create_installer($name, $emailRaw, $password);
-                    notify_installer_credentials($name, $emailRaw, $password);
-                    $message = 'Installer creato e email inviata';
+                    $created = create_installer($name, $emailRaw, null, true);
+                    if (!empty($created['reset_token'])) {
+                        notify_installer_credentials($name, $emailRaw, $created['reset_token']);
+                        $message = 'Installer creato, email inviata per impostare la password';
+                    } else {
+                        $message = 'Installer creato';
+                    }
                 } catch (InvalidArgumentException $e) {
                     $error = $e->getMessage();
                 } catch (Throwable $e) {
@@ -148,10 +149,7 @@ include __DIR__ . '/../includes/layout/header.php';
             <input type="email" class="form-control" name="email" placeholder="Email aziendale" required>
         </div>
         <div class="col-12">
-            <input type="password" class="form-control" name="password" placeholder="Password (min 8)" required>
-        </div>
-        <div class="col-12">
-            <button class="btn btn-primary w-100 btn-sm">Crea installer</button>
+            <button class="btn btn-primary w-100 btn-sm">Invia invito</button>
         </div>
     </form>
     <div class="list-group list-compact mt-2">

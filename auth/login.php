@@ -24,13 +24,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $emailKey = strtolower(trim($emailRaw));
         if (!filter_var($emailRaw, FILTER_VALIDATE_EMAIL)) {
             $error = 'Email non valida';
-        } elseif (strlen($password) < 6 || strlen($password) > 128) {
+        } elseif (strlen($password) < 8 || strlen($password) > 128) {
             $error = 'Password non valida';
         } elseif (is_login_rate_limited($emailKey, $ip)) {
             $error = 'Troppi tentativi di accesso. Riprova tra pochi minuti.';
         } else {
             $user = find_user_by_email($email);
-            if ($user && password_verify($password, $user['password'])) {
+            if ($user && empty($user['password'])) {
+                $error = 'Devi impostare la password dal link ricevuto via email.';
+            } elseif ($user && password_verify($password, $user['password'])) {
                 $_SESSION['user'] = $user;
                 record_login_attempt($emailKey, $ip, true);
                 if ($remember) {
