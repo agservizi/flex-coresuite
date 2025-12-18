@@ -233,25 +233,25 @@ function setupOfferPicker() {
   const backdrop = document.querySelector('[data-offer-picker-backdrop]');
   const select = document.querySelector('[data-offer-select]');
   const label = document.querySelector('[data-offer-label]');
-  if (!trigger || !sheet || !backdrop || !select || !label) return;
+  if (!trigger || !sheet || !select || !label) return;
 
   const closeBtn = sheet.querySelector('[data-offer-picker-close]');
   const options = sheet.querySelectorAll('[data-offer-option]');
 
   const open = () => {
     sheet.classList.add('show');
-    backdrop.classList.add('show');
+    if (backdrop) backdrop.classList.add('show');
     document.body.classList.add('no-scroll');
   };
 
   const close = () => {
     sheet.classList.remove('show');
-    backdrop.classList.remove('show');
+    if (backdrop) backdrop.classList.remove('show');
     document.body.classList.remove('no-scroll');
   };
 
   trigger.addEventListener('click', open);
-  backdrop.addEventListener('click', close);
+  if (backdrop) backdrop.addEventListener('click', close);
   if (closeBtn) closeBtn.addEventListener('click', close);
 
   options.forEach(opt => {
