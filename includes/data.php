@@ -263,6 +263,15 @@ function get_opportunities(array $filters = []): array
         $sql .= ' AND g.name = :manager';
         $params['manager'] = $filters['manager'];
     }
+    if (isset($filters['origin']) && $filters['origin'] !== '') {
+        if ($filters['origin'] === 'segnalatore') {
+            $sql .= ' AND o.notes LIKE :origin_notes';
+            $params['origin_notes'] = 'Segnalazione%';
+        } elseif ($filters['origin'] === 'admin_installer') {
+            $sql .= ' AND (o.notes NOT LIKE :origin_notes OR o.notes IS NULL)';
+            $params['origin_notes'] = 'Segnalazione%';
+        }
+    }
 
     $sql .= ' ORDER BY o.created_at DESC, o.id DESC';
 
@@ -311,6 +320,15 @@ function count_opportunities(array $filters = []): int
     if (isset($filters['manager']) && $filters['manager'] !== '') {
         $sql .= ' AND g.name = :manager';
         $params['manager'] = $filters['manager'];
+    }
+    if (isset($filters['origin']) && $filters['origin'] !== '') {
+        if ($filters['origin'] === 'segnalatore') {
+            $sql .= ' AND o.notes LIKE :origin_notes';
+            $params['origin_notes'] = 'Segnalazione%';
+        } elseif ($filters['origin'] === 'admin_installer') {
+            $sql .= ' AND (o.notes NOT LIKE :origin_notes OR o.notes IS NULL)';
+            $params['origin_notes'] = 'Segnalazione%';
+        }
     }
 
     $stmt = db()->prepare($sql);

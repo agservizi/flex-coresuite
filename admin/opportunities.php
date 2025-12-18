@@ -68,6 +68,7 @@ $installerId = sanitize($_GET['installer_id'] ?? '');
 $status = sanitize($_GET['status'] ?? '');
 $month = sanitize($_GET['month'] ?? '');
 $manager = sanitize($_GET['manager'] ?? '');
+$origin = sanitize($_GET['origin'] ?? '');
 $page = max(1, (int)($_GET['page'] ?? 1));
 $perPage = 10;
 $offset = ($page - 1) * $perPage;
@@ -77,6 +78,7 @@ $baseFilters = [
     'status' => $status,
     'month' => $month,
     'manager' => $manager,
+    'origin' => $origin,
 ];
 
 $totalOps = count_opportunities($baseFilters);
@@ -138,6 +140,13 @@ include __DIR__ . '/../includes/layout/header.php';
             <?php endforeach; ?>
         </select>
     </div>
+    <div class="col-6">
+        <select class="form-select" name="origin">
+            <option value="">Origine</option>
+            <option value="admin_installer" <?php echo ($origin === 'admin_installer') ? 'selected' : ''; ?>>Admin/Installer</option>
+            <option value="segnalatore" <?php echo ($origin === 'segnalatore') ? 'selected' : ''; ?>>Segnalatore</option>
+        </select>
+    </div>
 </form>
 
 <?php foreach ($ops as $op): ?>
@@ -178,6 +187,7 @@ include __DIR__ . '/../includes/layout/header.php';
             'status' => $status,
             'month' => $month,
             'manager' => $manager,
+            'origin' => $origin,
         ];
     ?>
     <nav class="d-flex justify-content-between align-items-center mt-3">
