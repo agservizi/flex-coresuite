@@ -20,7 +20,11 @@ document.addEventListener('DOMContentLoaded', () => {
   hydrateFlashMessages();
 
   registerPush();
+  setupNotifications();
 });
+
+const NOTIFICATION_STORAGE_KEY = 'flex_notifications_v1';
+const NOTIFICATION_SEEN_KEY = 'flex_notifications_seen_at';
 
 function injectToastStack() {
   if (document.querySelector('.toast-stack')) return;
@@ -29,16 +33,17 @@ function injectToastStack() {
   document.body.appendChild(stack);
 }
 
-function showToast(message, type = 'info', title = '') {
+function showToast(message, type = 'info', title = '', persist = true) {
   const stack = document.querySelector('.toast-stack');
   if (!stack) return;
+  const effectiveTitle = title || (type === 'success' ? 'OK' : type === 'error' ? 'Errore' : 'Info');
   const toast = document.createElement('div');
   toast.className = `toast-item ${type}`;
 
   const content = document.createElement('div');
   const titleEl = document.createElement('div');
   titleEl.className = 'toast-title';
-  titleEl.textContent = title || (type === 'success' ? 'OK' : type === 'error' ? 'Errore' : 'Info');
+  titleEl.textContent = effectiveTitle;
   const msgEl = document.createElement('p');
   msgEl.className = 'toast-msg';
   msgEl.textContent = message;
@@ -53,6 +58,15 @@ function showToast(message, type = 'info', title = '') {
   toast.appendChild(content);
   toast.appendChild(closeBtn);
   stack.appendChild(toast);
+
+  if (persist) {
+    addNotificationEntry({
+      title: effectiveTitle,
+      message,
+      type,
+      createdAt: new Date().toISOString(),
+    });
+  }
 
   setTimeout(() => {
     toast.classList.add('fade-out');
@@ -243,4 +257,202 @@ function setupOfferPicker() {
       close();
     });
   });
+}
+
+function readStoredNotifications() {
+  try {
+    const raw = localStorage.getItem(NOTIFICATION_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (err) {
+    return [];
+  }
+}
+
+function persistNotifications(list) {
+  try {
+    localStorage.setItem(NOTIFICATION_STORAGE_KEY, JSON.stringify(list));
+  } catch (err) {
+    // ignore write failures (private mode, quota, etc.)
+  }
+}
+
+function addNotificationEntry(entry) {
+  if (!entry) return;
+  const normalized = {
+    id: entry.id || (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`),
+    title: entry.title || 'Info',
+    message: entry.message || '',
+    type: entry.type || 'info',
+    createdAt: entry.createdAt || new Date().toISOString(),
+  };
+
+  const existing = readStoredNotifications();
+  const updated = [normalized, ...existing].slice(0, 60);
+  persistNotifications(updated);
+  window.dispatchEvent(new CustomEvent('notifications:updated'));
+}
+
+function getUnreadNotificationCount(notifications = readStoredNotifications()) {
+  const rawSeen = (() => {
+    try {
+      return localStorage.getItem(NOTIFICATION_SEEN_KEY);
+    } catch (err) {
+      return '';
+    }
+  })();
+  const lastSeen = Number(rawSeen) || 0;
+  return notifications.filter(n => {
+    const created = new Date(n.createdAt || '').getTime();
+    return !Number.isNaN(created) && created > lastSeen;
+  }).length;
+}
+
+function markNotificationsSeen() {
+  try {
+    localStorage.setItem(NOTIFICATION_SEEN_KEY, `${Date.now()}`);
+  } catch (err) {
+    // ignore write failures
+  }
+  window.dispatchEvent(new CustomEvent('notifications:updated'));
+}
+
+function clearNotifications() {
+  persistNotifications([]);
+  window.dispatchEvent(new CustomEvent('notifications:updated'));
+}
+
+function formatNotificationTime(isoString) {
+  const date = new Date(isoString);
+  if (Number.isNaN(date.getTime())) return '';
+  const now = Date.now();
+  const diff = now - date.getTime();
+
+  const minute = 60 * 1000;
+  const hour = 60 * minute;
+  const day = 24 * hour;
+
+  if (diff < minute) return 'Ora';
+  if (diff < hour) return `${Math.floor(diff / minute)} min fa`;
+  if (diff < day) return `${Math.floor(diff / hour)} h fa`;
+
+  return date.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+}
+
+function buildNotificationNode(note) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'notification-item';
+
+  const header = document.createElement('div');
+  header.className = 'd-flex justify-content-between align-items-center mb-1';
+
+  const titleEl = document.createElement('div');
+  titleEl.className = 'title';
+  titleEl.textContent = note.title || 'Info';
+
+  const badge = document.createElement('span');
+  const badgeClasses = {
+    success: 'bg-success-subtle text-success',
+    error: 'bg-danger-subtle text-danger',
+    info: 'bg-primary-subtle text-primary',
+  };
+  badge.className = `badge rounded-pill ${badgeClasses[note.type] || badgeClasses.info}`;
+  badge.textContent = note.type === 'success' ? 'Successo' : note.type === 'error' ? 'Errore' : 'Info';
+
+  header.appendChild(titleEl);
+  header.appendChild(badge);
+
+  const body = document.createElement('p');
+  body.className = 'body mb-1';
+  body.textContent = note.message || '';
+
+  const meta = document.createElement('div');
+  meta.className = 'meta';
+  meta.textContent = formatNotificationTime(note.createdAt);
+
+  wrapper.appendChild(header);
+  wrapper.appendChild(body);
+  wrapper.appendChild(meta);
+
+  return wrapper;
+}
+
+function setupNotifications() {
+  const trigger = document.querySelector('[data-notification-trigger]');
+  const sheet = document.querySelector('[data-notification-sheet]');
+  const backdrop = document.querySelector('[data-notification-backdrop]');
+  const list = document.querySelector('[data-notification-list]');
+  const empty = document.querySelector('[data-notification-empty]');
+  const markReadBtn = document.querySelector('[data-notification-mark-read]');
+  const clearBtn = document.querySelector('[data-notification-clear]');
+  const badge = document.querySelector('[data-notification-badge]');
+  if (!trigger || !sheet || !backdrop || !list || !empty || !badge) return;
+
+  const render = () => {
+    const notifications = readStoredNotifications();
+    list.innerHTML = '';
+
+    if (!notifications.length) {
+      empty.classList.remove('d-none');
+      return notifications;
+    }
+
+    empty.classList.add('d-none');
+    notifications.forEach(note => list.appendChild(buildNotificationNode(note)));
+    return notifications;
+  };
+
+  const updateBadge = () => {
+    const notifications = readStoredNotifications();
+    const unread = getUnreadNotificationCount(notifications);
+    if (unread > 0) {
+      badge.classList.add('show');
+      badge.textContent = unread > 9 ? '9+' : `${unread}`;
+    } else {
+      badge.classList.remove('show');
+      badge.textContent = '';
+    }
+  };
+
+  const open = () => {
+    render();
+    sheet.classList.add('show');
+    backdrop.classList.add('show');
+    document.body.classList.add('no-scroll');
+    markNotificationsSeen();
+    updateBadge();
+  };
+
+  const close = () => {
+    sheet.classList.remove('show');
+    backdrop.classList.remove('show');
+    document.body.classList.remove('no-scroll');
+  };
+
+  trigger.addEventListener('click', open);
+  backdrop.addEventListener('click', close);
+
+  if (markReadBtn) {
+    markReadBtn.addEventListener('click', () => {
+      markNotificationsSeen();
+      updateBadge();
+    });
+  }
+
+  if (clearBtn) {
+    clearBtn.addEventListener('click', () => {
+      clearNotifications();
+      render();
+      updateBadge();
+    });
+  }
+
+  window.addEventListener('notifications:updated', () => {
+    render();
+    updateBadge();
+  });
+
+  render();
+  updateBadge();
 }

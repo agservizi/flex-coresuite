@@ -38,6 +38,10 @@ $pageTitle = $pageTitle ?? APP_NAME;
         </div>
         <?php if (current_user()): ?>
         <div class="d-flex align-items-center gap-2">
+            <button type="button" class="btn btn-outline-secondary btn-icon position-relative" data-notification-trigger aria-label="Notifiche">
+                <i class="bi bi-bell"></i>
+                <span class="notif-dot" data-notification-badge></span>
+            </button>
             <div class="text-end">
                 <div class="small fw-semibold text-primary text-truncate" style="max-width:120px;"><?php echo sanitize(current_user()['name']); ?></div>
                 <div class="badge bg-body-tertiary text-muted text-uppercase border"><?php echo sanitize(current_user()['role']); ?></div>
@@ -45,6 +49,19 @@ $pageTitle = $pageTitle ?? APP_NAME;
         </div>
         <?php endif; ?>
     </header>
+    <div class="sheet-backdrop" data-notification-backdrop></div>
+    <div class="sheet sheet-notifications" data-notification-sheet>
+        <div class="sheet-handle"></div>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="fw-bold">Notifiche</div>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-notification-mark-read>Segna come lette</button>
+                <button type="button" class="btn btn-sm btn-outline-danger" data-notification-clear>Svuota</button>
+            </div>
+        </div>
+        <div class="list-group" data-notification-list></div>
+        <div class="text-center text-muted small py-3 d-none" data-notification-empty>Nessuna notifica</div>
+    </div>
     <main class="app-main">
         <div class="container-fluid px-3 py-3">
     <div class="sheet-backdrop" data-sheet-select-backdrop></div>
