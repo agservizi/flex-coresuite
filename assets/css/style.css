@@ -125,7 +125,8 @@ body.bg-base {
     left: 0;
     right: 0;
     z-index: 20;
-    box-shadow: none;
+    box-shadow: none !important;
+    border-top: 0 !important;
     background: var(--bg-card);
 }
 
