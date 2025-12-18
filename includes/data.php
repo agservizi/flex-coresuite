@@ -243,7 +243,7 @@ function get_opportunities(array $filters = []): array
             FROM opportunities o
             JOIN offers off ON o.offer_id = off.id
             JOIN gestori g ON o.manager_id = g.id
-            JOIN users u ON o.installer_id = u.id
+            LEFT JOIN users u ON o.installer_id = u.id
             WHERE 1=1';
     $params = [];
 
@@ -292,7 +292,7 @@ function count_opportunities(array $filters = []): int
             FROM opportunities o
             JOIN offers off ON o.offer_id = off.id
             JOIN gestori g ON o.manager_id = g.id
-            JOIN users u ON o.installer_id = u.id
+            LEFT JOIN users u ON o.installer_id = u.id
             WHERE 1=1';
     $params = [];
 
@@ -327,7 +327,7 @@ function add_opportunity(array $data): array
     $pdo = db();
 
     $offerId = (int)($data['offer_id'] ?? 0);
-    $installerId = (int)($data['installer_id'] ?? 0);
+    $installerId = isset($data['installer_id']) ? (int)$data['installer_id'] : null;
     $offerStmt = $pdo->prepare('SELECT o.id, o.name, o.commission, o.manager_id, g.name AS manager_name
                                 FROM offers o
                                 JOIN gestori g ON o.manager_id = g.id
@@ -349,7 +349,7 @@ function add_opportunity(array $data): array
             'notes' => $data['notes'] ?? '',
             'offer_id' => $offerId,
             'manager_id' => $offer['manager_id'],
-            'commission' => $offer['commission'],
+            'commission' => $data['commission'] ?? $offer['commission'],
             'status' => STATUS_PENDING,
             'installer_id' => $installerId,
             'month' => (int)$now->format('m'),
@@ -365,7 +365,7 @@ function add_opportunity(array $data): array
         'notes' => $data['notes'] ?? '',
         'offer_name' => $offer['name'],
         'manager_name' => $offer['manager_name'],
-        'commission' => $offer['commission'],
+        'commission' => $data['commission'] ?? $offer['commission'],
         'status' => STATUS_PENDING,
         'installer_id' => $installerId,
         'installer_name' => $data['installer_name'] ?? '',
@@ -804,9 +804,6 @@ function update_segnalazione_status(int $id, string $status, int $reviewerId, ?i
 
         $opportunityId = null;
         if ($status === 'Accettata') {
-            if (!$installerId) {
-                throw new InvalidArgumentException('Installer obbligatorio per accettare');
-            }
             $created = add_opportunity([
                 'first_name' => $seg['first_name'],
                 'last_name' => $seg['last_name'],
@@ -814,6 +811,7 @@ function update_segnalazione_status(int $id, string $status, int $reviewerId, ?i
                 'offer_id' => (int)$seg['offer_id'],
                 'installer_id' => $installerId,
                 'installer_name' => '',
+                'commission' => 0, // No commission for segnalazioni
             ]);
             $opportunityId = $created['id'];
         }
