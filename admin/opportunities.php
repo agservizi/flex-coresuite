@@ -13,7 +13,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['op_id'], $_POST['stat
     } else {
         $opId = (int)$_POST['op_id'];
         $status = sanitize($_POST['status']);
-        update_opportunity_status($opId, $status, (int)$user['id']);
+        $change = update_opportunity_status($opId, $status, (int)$user['id']);
+        if (!empty($change['changed']) && !empty($change['installer_id'])) {
+            $info = get_opportunity_install_info($opId);
+            $code = $info['opportunity_code'] ?? '';
+            $subs = get_push_subscriptions((int)$change['installer_id']);
+            send_push_notification($subs, 'Opportunity aggiornata', 'Stato: ' . $status . ($code ? ' · ' . $code : ''));
+            notify_installer_status_change((int)$change['installer_id'], $info['installer_name'] ?? '', $info['installer_email'] ?? '', $code, $status);
+        }
     }
 }
 

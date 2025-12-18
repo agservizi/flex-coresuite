@@ -267,7 +267,7 @@ function add_opportunity(array $data): array
     ];
 }
 
-function update_opportunity_status(int $id, string $status, int $changedBy): void
+function update_opportunity_status(int $id, string $status, int $changedBy): array
 {
     seed_data();
     if (!in_array($status, [STATUS_PENDING, STATUS_OK, STATUS_KO], true)) {
@@ -277,7 +277,7 @@ function update_opportunity_status(int $id, string $status, int $changedBy): voi
     $pdo = db();
     $pdo->beginTransaction();
     try {
-        $stmt = $pdo->prepare('SELECT status FROM opportunities WHERE id = :id FOR UPDATE');
+        $stmt = $pdo->prepare('SELECT status, installer_id FROM opportunities WHERE id = :id FOR UPDATE');
         $stmt->execute(['id' => $id]);
         $row = $stmt->fetch();
         if (!$row) {
@@ -285,9 +285,10 @@ function update_opportunity_status(int $id, string $status, int $changedBy): voi
         }
 
         $oldStatus = $row['status'];
+        $installerId = (int)$row['installer_id'];
         if ($oldStatus === $status) {
             $pdo->commit();
-            return;
+            return ['changed' => false, 'installer_id' => $installerId];
         }
 
         $update = $pdo->prepare('UPDATE opportunities SET status = :status WHERE id = :id');
@@ -295,6 +296,9 @@ function update_opportunity_status(int $id, string $status, int $changedBy): voi
 
         log_opportunity_status_change($id, $oldStatus, $status, $changedBy, $pdo);
         $pdo->commit();
+
+        // Return change info for downstream notifications
+        return ['changed' => true, 'installer_id' => $installerId];
     } catch (Throwable $e) {
         $pdo->rollBack();
         throw $e;

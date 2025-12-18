@@ -70,6 +70,14 @@ function summarize(array $ops): array
     return $summary;
 }
 
+function get_opportunity_install_info(int $id): ?array
+{
+    $stmt = db()->prepare('SELECT o.id, o.opportunity_code, o.installer_id, u.name AS installer_name FROM opportunities o JOIN users u ON o.installer_id = u.id WHERE o.id = :id LIMIT 1');
+    $stmt->execute(['id' => $id]);
+    $row = $stmt->fetch();
+    return $row ?: null;
+}
+
 function base64url_encode(string $data): string
 {
     return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
@@ -299,4 +307,29 @@ function notify_installer_credentials(string $name, string $email, string $token
         'Il link scade tra 24 ore.';
 
     send_resend_email($email, $subject, $html, $text);
+}
+
+function notify_installer_status_change(int $installerId, string $installerName, string $installerEmail, string $opCode, string $newStatus): void
+{
+    if (!$installerEmail) {
+        return;
+    }
+
+    $subject = 'Aggiornamento opportunity ' . $opCode . ' - ' . $newStatus;
+    $body = '<p>Ciao ' . htmlspecialchars($installerName ?: 'Installer') . ',</p>'
+        . '<p>Lo stato della tua opportunity è stato aggiornato a <strong>' . htmlspecialchars($newStatus) . '</strong>.</p>'
+        . '<table style="border-collapse:collapse;width:100%;font-size:14px;">'
+        . '<tr><td style="padding:6px 0;color:#6c757d;">Codice</td><td style="padding:6px 0;font-weight:600;">' . htmlspecialchars($opCode) . '</td></tr>'
+        . '<tr><td style="padding:6px 0;color:#6c757d;">Stato</td><td style="padding:6px 0;font-weight:600;">' . htmlspecialchars($newStatus) . '</td></tr>'
+        . '</table>'
+        . '<p style="color:#6c757d;font-size:13px;">Aggiornato il ' . date('d/m/Y H:i') . '.</p>';
+
+    $html = render_email_wrapper('Opportunity aggiornata', $body, null, null, APP_NAME . ' · ' . (getenv('COMPANY_NAME') ?: ''));
+
+    $text = "Ciao $installerName,\n"
+        . 'Stato aggiornato a: ' . $newStatus . "\n"
+        . 'Codice: ' . $opCode . "\n"
+        . 'Aggiornato il: ' . date('d/m/Y H:i');
+
+    send_resend_email($installerEmail, $subject, $html, $text);
 }
