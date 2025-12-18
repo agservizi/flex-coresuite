@@ -52,8 +52,6 @@ $bottomNav = '
     <a class="nav-pill" href="/admin/dashboard.php"><span class="dot"></span><span>Home</span></a>
     <a class="nav-pill active" href="/admin/opportunities.php"><span class="dot"></span><span>Opportunity</span></a>
     <a class="nav-pill" href="/admin/report.php"><span class="dot"></span><span>Report</span></a>
-    <a class="nav-pill" href="/admin/segnalazioni.php"><span class="dot"></span><span>Segnalazioni</span></a>
-        <a class="nav-pill" href="/admin/segnalatori.php"><span class="dot"></span><span>Segnalatori</span></a>
     <a class="nav-pill" href="/admin/settings.php"><span class="dot"></span><span>Impostazioni</span></a>
 ';
 include __DIR__ . '/../includes/layout/header.php';
