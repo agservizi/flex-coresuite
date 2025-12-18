@@ -15,7 +15,59 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   setupOfferPicker();
+
+  injectToastStack();
+  hydrateFlashMessages();
 });
+
+function injectToastStack() {
+  if (document.querySelector('.toast-stack')) return;
+  const stack = document.createElement('div');
+  stack.className = 'toast-stack';
+  document.body.appendChild(stack);
+}
+
+function showToast(message, type = 'info', title = '') {
+  const stack = document.querySelector('.toast-stack');
+  if (!stack) return;
+  const toast = document.createElement('div');
+  toast.className = `toast-item ${type}`;
+
+  const content = document.createElement('div');
+  const titleEl = document.createElement('div');
+  titleEl.className = 'toast-title';
+  titleEl.textContent = title || (type === 'success' ? 'OK' : type === 'error' ? 'Errore' : 'Info');
+  const msgEl = document.createElement('p');
+  msgEl.className = 'toast-msg';
+  msgEl.textContent = message;
+  content.appendChild(titleEl);
+  content.appendChild(msgEl);
+
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'toast-close';
+  closeBtn.innerHTML = '&times;';
+  closeBtn.addEventListener('click', () => toast.remove());
+
+  toast.appendChild(content);
+  toast.appendChild(closeBtn);
+  stack.appendChild(toast);
+
+  setTimeout(() => {
+    toast.classList.add('fade-out');
+    toast.addEventListener('animationend', () => toast.remove());
+  }, 4000);
+}
+
+function hydrateFlashMessages() {
+  const flash = document.querySelector('[data-flash]');
+  if (!flash) return;
+  const type = flash.dataset.type || 'info';
+  const msg = flash.dataset.flash || '';
+  const title = flash.dataset.title || '';
+  if (msg) {
+    showToast(msg, type, title);
+  }
+}
 
 function setupSheetSelects() {
   const sheet = document.querySelector('[data-sheet-select]');

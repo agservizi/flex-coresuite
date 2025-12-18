@@ -67,10 +67,10 @@ include __DIR__ . '/../includes/layout/header.php';
         <span class="badge bg-secondary">Stato: In attesa</span>
     </div>
     <?php if ($message): ?>
-        <div class="alert alert-success py-2"><?php echo sanitize($message); ?></div>
+            <div data-flash data-type="success" data-title="OK" data-flash="<?php echo sanitize($message); ?>"></div>
     <?php endif; ?>
     <?php if ($error): ?>
-        <div class="alert alert-danger py-2"><?php echo sanitize($error); ?></div>
+            <div data-flash data-type="error" data-title="Errore" data-flash="<?php echo sanitize($error); ?>"></div>
     <?php endif; ?>
 
     <form method="post" class="needs-validation" novalidate>

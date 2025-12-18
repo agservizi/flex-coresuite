@@ -18,6 +18,7 @@ $pageTitle = $pageTitle ?? APP_NAME;
     <link rel="stylesheet" href="/assets/css/style.css">
 </head>
 <body class="bg-base text-body">
+    <div class="toast-stack" aria-live="polite" aria-atomic="true"></div>
 <div class="app-shell">
     <header class="app-topbar d-flex align-items-center justify-content-between px-3 py-2 border-bottom">
         <div>
