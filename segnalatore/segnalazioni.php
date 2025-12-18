@@ -10,6 +10,7 @@ $bottomNav = '
     <a class="nav-pill" href="/segnalatore/dashboard.php"><span class="dot"></span><span>Home</span></a>
     <a class="nav-pill" href="/segnalatore/new_opportunity.php"><span class="dot"></span><span>Nuova</span></a>
     <a class="nav-pill active" href="/segnalatore/segnalazioni.php"><span class="dot"></span><span>Le mie</span></a>
+    <a class="nav-pill" href="/segnalatore/report.php"><span class="dot"></span><span>Report</span></a>
 ';
 include __DIR__ . '/../includes/layout/header.php';
 ?>
