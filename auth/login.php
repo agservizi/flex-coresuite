@@ -6,7 +6,7 @@ if (current_user()) {
     $user = current_user();
     $target = $user['role'] === 'admin'
         ? '/admin/dashboard.php'
-        : ($user['role'] === 'segnalatore' ? '/segnalatore/new_opportunity.php' : '/installer/dashboard.php');
+        : ($user['role'] === 'segnalatore' ? '/segnalatore/dashboard.php' : '/installer/dashboard.php');
     header("Location: {$target}");
     exit;
 }
@@ -54,7 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
                 $target = $user['role'] === 'admin'
                     ? '/admin/dashboard.php'
-                    : ($user['role'] === 'segnalatore' ? '/segnalatore/new_opportunity.php' : '/installer/dashboard.php');
+                    : ($user['role'] === 'segnalatore' ? '/segnalatore/dashboard.php' : '/installer/dashboard.php');
                 header("Location: {$target}");
                 exit;
             }

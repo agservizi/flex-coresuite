@@ -7,9 +7,9 @@ $user = current_user();
 $segnalazioni = list_segnalazioni(['created_by' => (int)$user['id']]);
 $pageTitle = 'Le mie segnalazioni';
 $bottomNav = '
+    <a class="nav-pill" href="/segnalatore/dashboard.php"><span class="dot"></span><span>Home</span></a>
     <a class="nav-pill" href="/segnalatore/new_opportunity.php"><span class="dot"></span><span>Nuova</span></a>
     <a class="nav-pill active" href="/segnalatore/segnalazioni.php"><span class="dot"></span><span>Le mie</span></a>
-    <a class="nav-pill" href="/auth/logout.php"><span class="dot"></span><span>Logout</span></a>
 ';
 include __DIR__ . '/../includes/layout/header.php';
 ?>
@@ -17,6 +17,10 @@ include __DIR__ . '/../includes/layout/header.php';
     <div>
         <div class="bite">Segnalatore</div>
         <h1 class="h5 fw-bold mb-0">Le mie segnalazioni</h1>
+    </div>
+    <div class="d-flex gap-2">
+        <button class="btn btn-outline-light btn-sm" data-toggle-theme aria-label="Tema">Tema</button>
+        <a class="btn btn-outline-secondary btn-sm" href="/auth/logout.php">Logout</a>
     </div>
 </div>
 
