@@ -20,6 +20,10 @@ $pageTitle = $pageTitle ?? APP_NAME;
     <?php endif; ?>
     <title><?php echo sanitize($pageTitle); ?> · <?php echo APP_NAME; ?></title>
     <meta name="theme-color" content="#0d1b2a">
+    <link rel="icon" href="/public/favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="/public/favicon-32.png" sizes="32x32">
+    <link rel="icon" href="/public/favicon-64.png" sizes="64x64">
+    <link rel="apple-touch-icon" href="/public/favicon-180.png" sizes="180x180">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="/assets/css/style.css">
