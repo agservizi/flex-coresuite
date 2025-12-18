@@ -209,9 +209,60 @@ function get_opportunities(array $filters = []): array
     }
 
     $sql .= ' ORDER BY o.created_at DESC, o.id DESC';
+
+    $limit = isset($filters['limit']) ? (int)$filters['limit'] : null;
+    $offset = isset($filters['offset']) ? max(0, (int)$filters['offset']) : 0;
+    if ($limit !== null && $limit > 0) {
+        $sql .= ' LIMIT :limit OFFSET :offset';
+    }
+
     $stmt = db()->prepare($sql);
-    $stmt->execute($params);
+    foreach ($params as $key => $value) {
+        $stmt->bindValue(':' . $key, $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
+    }
+    if ($limit !== null && $limit > 0) {
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+    }
+
+    $stmt->execute();
     return $stmt->fetchAll();
+}
+
+function count_opportunities(array $filters = []): int
+{
+    seed_data();
+    $sql = 'SELECT COUNT(*)
+            FROM opportunities o
+            JOIN offers off ON o.offer_id = off.id
+            JOIN gestori g ON o.manager_id = g.id
+            JOIN users u ON o.installer_id = u.id
+            WHERE 1=1';
+    $params = [];
+
+    if (isset($filters['installer_id']) && $filters['installer_id'] !== '') {
+        $sql .= ' AND o.installer_id = :installer_id';
+        $params['installer_id'] = (int)$filters['installer_id'];
+    }
+    if (isset($filters['status']) && $filters['status'] !== '') {
+        $sql .= ' AND o.status = :status';
+        $params['status'] = $filters['status'];
+    }
+    if (isset($filters['month']) && $filters['month'] !== '') {
+        $sql .= ' AND o.month = :month';
+        $params['month'] = (int)$filters['month'];
+    }
+    if (isset($filters['manager']) && $filters['manager'] !== '') {
+        $sql .= ' AND g.name = :manager';
+        $params['manager'] = $filters['manager'];
+    }
+
+    $stmt = db()->prepare($sql);
+    foreach ($params as $key => $value) {
+        $stmt->bindValue(':' . $key, $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
+    }
+    $stmt->execute();
+    return (int)$stmt->fetchColumn();
 }
 
 function add_opportunity(array $data): array
@@ -265,8 +316,6 @@ function add_opportunity(array $data): array
         'month' => (int)$now->format('m'),
         'created_at' => $now->format('Y-m-d'),
     ];
-}
-
 function update_opportunity_status(int $id, string $status, int $changedBy): array
 {
     seed_data();
@@ -427,4 +476,53 @@ function get_admin_push_subscriptions(): array
             JOIN users u ON ps.user_id = u.id
             WHERE u.role = "admin"';
     return db()->query($sql)->fetchAll();
+}
+
+function create_notification(int $userId, string $title, string $body, string $type = 'info'): int
+{
+    $type = in_array($type, ['info', 'success', 'error'], true) ? $type : 'info';
+    $pdo = db();
+    $stmt = $pdo->prepare('INSERT INTO notifications (user_id, title, body, type) VALUES (:user_id, :title, :body, :type)');
+    $stmt->execute([
+        'user_id' => $userId,
+        'title' => $title,
+        'body' => $body,
+        'type' => $type,
+    ]);
+    return (int)$pdo->lastInsertId();
+}
+
+function list_notifications(int $userId, int $limit = 50, int $offset = 0): array
+{
+    $limit = max(1, min($limit, 100));
+    $offset = max(0, $offset);
+    $stmt = db()->prepare('SELECT id, title, body, type, read_at, created_at
+                           FROM notifications
+                           WHERE user_id = :uid
+                           ORDER BY created_at DESC, id DESC
+                           LIMIT :lim OFFSET :off');
+    $stmt->bindValue(':uid', $userId, PDO::PARAM_INT);
+    $stmt->bindValue(':lim', $limit, PDO::PARAM_INT);
+    $stmt->bindValue(':off', $offset, PDO::PARAM_INT);
+    $stmt->execute();
+    return $stmt->fetchAll();
+}
+
+function mark_notifications_read(int $userId): void
+{
+    $stmt = db()->prepare('UPDATE notifications SET read_at = NOW() WHERE user_id = :uid AND read_at IS NULL');
+    $stmt->execute(['uid' => $userId]);
+}
+
+function clear_notifications(int $userId): void
+{
+    $stmt = db()->prepare('DELETE FROM notifications WHERE user_id = :uid');
+    $stmt->execute(['uid' => $userId]);
+}
+
+function count_unread_notifications(int $userId): int
+{
+    $stmt = db()->prepare('SELECT COUNT(*) FROM notifications WHERE user_id = :uid AND read_at IS NULL');
+    $stmt->execute(['uid' => $userId]);
+    return (int)$stmt->fetchColumn();
 }

@@ -30,7 +30,7 @@ include __DIR__ . '/../includes/layout/header.php';
     <a class="btn btn-outline-secondary btn-sm" href="/auth/logout.php">Logout</a>
 </div>
 
-<form class="row g-2 mb-3" method="get" data-auto-submit="true">
+<form class="row g-2 mb-3" method="get" data-auto-submit="true" data-auto-save="filters-report">
     <div class="col-6">
         <select class="form-select" name="installer_id">
             <option value="">Tutti gli installer</option>

@@ -1,4 +1,9 @@
 document.addEventListener('DOMContentLoaded', () => {
+  const savedTheme = localStorage.getItem('theme');
+  if (savedTheme) {
+    document.documentElement.setAttribute('data-bs-theme', savedTheme);
+  }
+
   setupSheetSelects();
   const filterForms = document.querySelectorAll('[data-auto-submit="true"]');
   filterForms.forEach(form => {
@@ -11,10 +16,12 @@ document.addEventListener('DOMContentLoaded', () => {
       const html = document.documentElement;
       const next = html.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark';
       html.setAttribute('data-bs-theme', next);
+      try { localStorage.setItem('theme', next); } catch (err) { /* ignore */ }
     });
   }
 
   setupOfferPicker();
+  setupSavedFilters();
 
   injectToastStack();
   hydrateFlashMessages();
@@ -261,68 +268,80 @@ function setupOfferPicker() {
   });
 }
 
-function readStoredNotifications() {
+function getCsrfToken() {
+  const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+  return csrfMeta ? csrfMeta.content : '';
+}
+
+async function fetchNotifications(limit = 50, offset = 0) {
+  const res = await fetch(`/notifications.php?limit=${encodeURIComponent(limit)}&offset=${encodeURIComponent(offset)}`, {
+    credentials: 'same-origin',
+  });
+  if (!res.ok) {
+    throw new Error('Impossibile caricare le notifiche');
+  }
+  return res.json();
+}
+
+async function addNotificationEntry(entry) {
+  const csrf = getCsrfToken();
+  if (!csrf || !entry) return;
   try {
-    const raw = localStorage.getItem(NOTIFICATION_STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
+    await fetch('/notifications.php', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': csrf,
+      },
+      credentials: 'same-origin',
+      body: JSON.stringify({
+        action: 'add',
+        title: entry.title || 'Info',
+        body: entry.message || '',
+        type: entry.type || 'info',
+      }),
+    });
+    window.dispatchEvent(new CustomEvent('notifications:updated'));
   } catch (err) {
-    return [];
+    // ignore network issues silently
   }
 }
 
-function persistNotifications(list) {
+async function markNotificationsSeen() {
+  const csrf = getCsrfToken();
+  if (!csrf) return;
   try {
-    localStorage.setItem(NOTIFICATION_STORAGE_KEY, JSON.stringify(list));
+    await fetch('/notifications.php', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': csrf,
+      },
+      credentials: 'same-origin',
+      body: JSON.stringify({ action: 'mark_read' }),
+    });
   } catch (err) {
-    // ignore write failures (private mode, quota, etc.)
+    // ignore
   }
 }
 
-function addNotificationEntry(entry) {
-  if (!entry) return;
-  const normalized = {
-    id: entry.id || (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`),
-    title: entry.title || 'Info',
-    message: entry.message || '',
-    type: entry.type || 'info',
-    createdAt: entry.createdAt || new Date().toISOString(),
-  };
-
-  const existing = readStoredNotifications();
-  const updated = [normalized, ...existing].slice(0, 60);
-  persistNotifications(updated);
-  window.dispatchEvent(new CustomEvent('notifications:updated'));
-}
-
-function getUnreadNotificationCount(notifications = readStoredNotifications()) {
-  const rawSeen = (() => {
-    try {
-      return localStorage.getItem(NOTIFICATION_SEEN_KEY);
-    } catch (err) {
-      return '';
-    }
-  })();
-  const lastSeen = Number(rawSeen) || 0;
-  return notifications.filter(n => {
-    const created = new Date(n.createdAt || '').getTime();
-    return !Number.isNaN(created) && created > lastSeen;
-  }).length;
-}
-
-function markNotificationsSeen() {
+async function clearNotifications() {
+  const csrf = getCsrfToken();
+  if (!csrf) return;
   try {
-    localStorage.setItem(NOTIFICATION_SEEN_KEY, `${Date.now()}`);
+    await fetch('/notifications.php', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': csrf,
+      },
+      credentials: 'same-origin',
+      body: JSON.stringify({ action: 'clear' }),
+    });
+    window.dispatchEvent(new CustomEvent('notifications:updated'));
   } catch (err) {
-    // ignore write failures
+    // ignore
   }
-  window.dispatchEvent(new CustomEvent('notifications:updated'));
-}
-
-function clearNotifications() {
-  persistNotifications([]);
-  window.dispatchEvent(new CustomEvent('notifications:updated'));
 }
 
 function formatNotificationTime(isoString) {
@@ -367,11 +386,11 @@ function buildNotificationNode(note) {
 
   const body = document.createElement('p');
   body.className = 'body mb-1';
-  body.textContent = note.message || '';
+  body.textContent = note.body || note.message || '';
 
   const meta = document.createElement('div');
   meta.className = 'meta';
-  meta.textContent = formatNotificationTime(note.createdAt);
+  meta.textContent = formatNotificationTime(note.created_at || note.createdAt);
 
   wrapper.appendChild(header);
   wrapper.appendChild(body);
@@ -391,39 +410,49 @@ function setupNotifications() {
   const badge = document.querySelector('[data-notification-badge]');
   if (!trigger || !sheet || !backdrop || !list || !empty || !badge) return;
 
+  let cache = { notifications: [], unread: 0 };
+
   const render = () => {
-    const notifications = readStoredNotifications();
     list.innerHTML = '';
-
-    if (!notifications.length) {
+    if (!cache.notifications.length) {
       empty.classList.remove('d-none');
-      return notifications;
+      return;
     }
-
     empty.classList.add('d-none');
-    notifications.forEach(note => list.appendChild(buildNotificationNode(note)));
-    return notifications;
+    cache.notifications.forEach(note => list.appendChild(buildNotificationNode(note)));
   };
 
   const updateBadge = () => {
-    const notifications = readStoredNotifications();
-    const unread = getUnreadNotificationCount(notifications);
-    if (unread > 0) {
+    if (cache.unread > 0) {
       badge.classList.add('show');
-      badge.textContent = unread > 9 ? '9+' : `${unread}`;
+      badge.textContent = cache.unread > 9 ? '9+' : `${cache.unread}`;
     } else {
       badge.classList.remove('show');
       badge.textContent = '';
     }
   };
 
-  const open = () => {
-    render();
+  const refresh = async () => {
+    try {
+      const data = await fetchNotifications();
+      cache = {
+        notifications: data.notifications || [],
+        unread: typeof data.unread === 'number' ? data.unread : 0,
+      };
+      render();
+      updateBadge();
+    } catch (err) {
+      // ignore load errors to avoid blocking UI
+    }
+  };
+
+  const open = async () => {
+    await refresh();
     sheet.classList.add('show');
     backdrop.classList.add('show');
     document.body.classList.add('no-scroll');
-    markNotificationsSeen();
-    updateBadge();
+    await markNotificationsSeen();
+    await refresh();
   };
 
   const close = () => {
@@ -436,25 +465,73 @@ function setupNotifications() {
   backdrop.addEventListener('click', close);
 
   if (markReadBtn) {
-    markReadBtn.addEventListener('click', () => {
-      markNotificationsSeen();
-      updateBadge();
+    markReadBtn.addEventListener('click', async () => {
+      await markNotificationsSeen();
+      await refresh();
     });
   }
 
   if (clearBtn) {
-    clearBtn.addEventListener('click', () => {
-      clearNotifications();
+    clearBtn.addEventListener('click', async () => {
+      await clearNotifications();
+      cache = { notifications: [], unread: 0 };
       render();
       updateBadge();
     });
   }
 
   window.addEventListener('notifications:updated', () => {
-    render();
-    updateBadge();
+    refresh();
   });
 
-  render();
+  refresh();
   updateBadge();
+}
+
+function setupSavedFilters() {
+  const forms = document.querySelectorAll('form[data-auto-save]');
+  forms.forEach(form => {
+    const key = form.dataset.autoSave || '';
+    if (!key) return;
+
+    // hydrate saved values if fields are empty and no query params override
+    try {
+      const stored = localStorage.getItem(`filters:${key}`);
+      if (stored) {
+        const data = JSON.parse(stored);
+        if (data && typeof data === 'object') {
+          Object.entries(data).forEach(([name, value]) => {
+            const field = form.elements.namedItem(name);
+            if (!field || (field.value && field.value !== '')) return;
+            if (field instanceof RadioNodeList) {
+              const el = Array.from(field).find(f => f.value === value);
+              if (el) el.checked = true;
+            } else {
+              field.value = value;
+            }
+          });
+        }
+      }
+    } catch (err) {
+      // ignore
+    }
+
+    form.addEventListener('change', () => {
+      const payload = {};
+      Array.from(form.elements).forEach(el => {
+        if (!el.name) return;
+        if (el.type === 'checkbox' || el.type === 'radio') {
+          if (!el.checked) return;
+          payload[el.name] = el.value;
+        } else {
+          payload[el.name] = el.value;
+        }
+      });
+      try {
+        localStorage.setItem(`filters:${key}`, JSON.stringify(payload));
+      } catch (err) {
+        // ignore
+      }
+    });
+  });
 }

@@ -17,6 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['op_id'], $_POST['stat
         if (!empty($change['changed']) && !empty($change['installer_id'])) {
             $info = get_opportunity_install_info($opId);
             $code = $info['opportunity_code'] ?? '';
+            create_notification((int)$change['installer_id'], 'Opportunity aggiornata', 'Stato: ' . $status . ($code ? ' · ' . $code : ''), 'info');
             $subs = get_push_subscriptions((int)$change['installer_id']);
             send_push_notification($subs, 'Opportunity aggiornata', 'Stato: ' . $status . ($code ? ' · ' . $code : ''));
             notify_installer_status_change((int)$change['installer_id'], $info['installer_name'] ?? '', $info['installer_email'] ?? '', $code, $status);
@@ -28,13 +29,23 @@ $installerId = sanitize($_GET['installer_id'] ?? '');
 $status = sanitize($_GET['status'] ?? '');
 $month = sanitize($_GET['month'] ?? '');
 $manager = sanitize($_GET['manager'] ?? '');
+$page = max(1, (int)($_GET['page'] ?? 1));
+$perPage = 10;
+$offset = ($page - 1) * $perPage;
 
-$ops = filter_opportunities([
+$baseFilters = [
     'installer_id' => $installerId,
     'status' => $status,
     'month' => $month,
     'manager' => $manager,
+];
+
+$totalOps = count_opportunities($baseFilters);
+$ops = filter_opportunities($baseFilters + [
+    'limit' => $perPage,
+    'offset' => $offset,
 ]);
+$totalPages = max(1, (int)ceil($totalOps / $perPage));
 
 $pageTitle = 'Opportunity';
 $bottomNav = '
@@ -53,7 +64,7 @@ include __DIR__ . '/../includes/layout/header.php';
     <a class="btn btn-outline-secondary btn-sm" href="/auth/logout.php">Logout</a>
 </div>
 
-<form class="row g-2 mb-3" method="get" data-auto-submit="true">
+<form class="row g-2 mb-3" method="get" data-auto-submit="true" data-auto-save="filters-opportunities">
     <div class="col-6">
         <select class="form-select" name="installer_id">
             <option value="">Installer</option>
@@ -117,5 +128,21 @@ include __DIR__ . '/../includes/layout/header.php';
 
 <?php if (empty($ops)): ?>
     <div class="alert alert-info">Nessuna opportunity trovata.</div>
+<?php endif; ?>
+
+<?php if ($totalPages > 1): ?>
+    <?php
+        $queryBase = [
+            'installer_id' => $installerId,
+            'status' => $status,
+            'month' => $month,
+            'manager' => $manager,
+        ];
+    ?>
+    <nav class="d-flex justify-content-between align-items-center mt-3">
+        <a class="btn btn-outline-secondary btn-sm <?php echo $page <= 1 ? 'disabled' : ''; ?>" href="/admin/opportunities.php?<?php echo http_build_query($queryBase + ['page' => max(1, $page - 1)]); ?>">Precedente</a>
+        <div class="small text-muted">Pagina <?php echo $page; ?> di <?php echo $totalPages; ?></div>
+        <a class="btn btn-outline-secondary btn-sm <?php echo $page >= $totalPages ? 'disabled' : ''; ?>" href="/admin/opportunities.php?<?php echo http_build_query($queryBase + ['page' => min($totalPages, $page + 1)]); ?>">Successiva</a>
+    </nav>
 <?php endif; ?>
 <?php include __DIR__ . '/../includes/layout/footer.php'; ?>
