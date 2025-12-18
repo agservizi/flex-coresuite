@@ -204,6 +204,12 @@ function render_email_wrapper(string $title, string $bodyHtml, ?string $ctaLabel
 {
     $brand = APP_NAME ?? 'Flex';
     $logoUrl = getenv('APP_LOGO_URL') ?: '';
+    if ($logoUrl && !preg_match('#^https?://#i', $logoUrl)) {
+        $base = getenv('APP_URL') ?: (getenv('BASE_URL') ?: '');
+        $base = rtrim($base, '/');
+        $path = '/' . ltrim($logoUrl, '/');
+        $logoUrl = $base ? $base . $path : '';
+    }
 
     $ctaBlock = '';
     if ($ctaLabel && $ctaUrl) {
