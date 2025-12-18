@@ -2,9 +2,20 @@
 require_once __DIR__ . '/../includes/permissions.php';
 require_role('segnalatore');
 require_once __DIR__ . '/../includes/helpers.php';
+require_once __DIR__ . '/../includes/data.php';
 
 $user = current_user();
-$segnalazioni = list_segnalazioni(['created_by' => (int)$user['id']]);
+$search = $_GET['search'] ?? '';
+$page = max(1, (int)($_GET['page'] ?? 1));
+$perPage = 10;
+$filters = ['created_by' => (int)$user['id']];
+if (!empty($search)) $filters['search'] = $search;
+$total = count_segnalazioni($filters);
+$totalPages = ceil($total / $perPage);
+$page = min($page, $totalPages ?: 1);
+$filters['limit'] = $perPage;
+$filters['offset'] = ($page - 1) * $perPage;
+$segnalazioni = list_segnalazioni($filters);
 $pageTitle = 'Le mie segnalazioni';
 $bottomNav = '
     <a class="nav-pill" href="/segnalatore/dashboard.php"><span class="dot"></span><span>Home</span></a>
@@ -29,8 +40,15 @@ $name = $parts[0] . ' ' . (isset($parts[1]) ? substr($parts[1], 0, 1) . '.' : ''
     </div>
 </div>
 
+<form method="GET" class="mb-3">
+    <div class="input-group">
+        <input type="text" name="search" class="form-control" placeholder="Cerca per nome..." value="<?php echo sanitize($search); ?>">
+        <button class="btn btn-outline-secondary" type="submit">Cerca</button>
+    </div>
+</form>
+
 <?php if (empty($segnalazioni)): ?>
-    <div class="alert alert-info">Nessuna segnalazione inviata.</div>
+    <div class="alert alert-info">Nessuna segnalazione trovata.</div>
 <?php endif; ?>
 
 <?php foreach ($segnalazioni as $seg): ?>
@@ -55,4 +73,27 @@ $name = $parts[0] . ' ' . (isset($parts[1]) ? substr($parts[1], 0, 1) . '.' : ''
         </div>
     </div>
 <?php endforeach; ?>
+
+<?php if ($totalPages > 1): ?>
+    <nav aria-label="Paginazione segnalazioni">
+        <ul class="pagination justify-content-center">
+            <?php if ($page > 1): ?>
+                <li class="page-item">
+                    <a class="page-link" href="?page=<?php echo $page - 1; ?><?php echo !empty($search) ? '&search=' . urlencode($search) : ''; ?>">Precedente</a>
+                </li>
+            <?php endif; ?>
+            <?php for ($i = max(1, $page - 2); $i <= min($totalPages, $page + 2); $i++): ?>
+                <li class="page-item <?php echo $i === $page ? 'active' : ''; ?>">
+                    <a class="page-link" href="?page=<?php echo $i; ?><?php echo !empty($search) ? '&search=' . urlencode($search) : ''; ?>"><?php echo $i; ?></a>
+                </li>
+            <?php endfor; ?>
+            <?php if ($page < $totalPages): ?>
+                <li class="page-item">
+                    <a class="page-link" href="?page=<?php echo $page + 1; ?><?php echo !empty($search) ? '&search=' . urlencode($search) : ''; ?>">Successivo</a>
+                </li>
+            <?php endif; ?>
+        </ul>
+    </nav>
+<?php endif; ?>
+
 <?php include __DIR__ . '/../includes/layout/footer.php'; ?>

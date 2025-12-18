@@ -694,17 +694,10 @@ function get_segnalazione_doc(int $docId): ?array
     return $row ?: null;
 }
 
-function list_segnalazioni(array $filters = []): array
+function count_segnalazioni(array $filters = []): int
 {
     seed_data();
-    $sql = 'SELECT s.id, s.first_name, s.last_name, s.offer_id, s.manager_id, s.status, s.created_by, s.created_at, s.opportunity_id,
-                   o.name AS offer_name, g.name AS manager_name, u.name AS creator_name,
-                   (SELECT COUNT(*) FROM segnalazione_docs d WHERE d.segnalazione_id = s.id) AS doc_count
-            FROM segnalazioni s
-            JOIN offers o ON s.offer_id = o.id
-            LEFT JOIN gestori g ON s.manager_id = g.id
-            LEFT JOIN users u ON s.created_by = u.id
-            WHERE 1=1';
+    $sql = 'SELECT COUNT(*) FROM segnalazioni s WHERE 1=1';
     $params = [];
 
     if (!empty($filters['status'])) {
@@ -715,14 +708,17 @@ function list_segnalazioni(array $filters = []): array
         $sql .= ' AND s.created_by = :created_by';
         $params['created_by'] = (int)$filters['created_by'];
     }
+    if (!empty($filters['search'])) {
+        $sql .= ' AND (s.first_name LIKE :search OR s.last_name LIKE :search)';
+        $params['search'] = '%' . $filters['search'] . '%';
+    }
 
-    $sql .= ' ORDER BY s.created_at DESC, s.id DESC';
     $stmt = db()->prepare($sql);
     foreach ($params as $k => $v) {
         $stmt->bindValue(':' . $k, $v, is_int($v) ? PDO::PARAM_INT : PDO::PARAM_STR);
     }
     $stmt->execute();
-    return $stmt->fetchAll();
+    return (int)$stmt->fetchColumn();
 }
 
 function get_segnalazione(int $id): ?array
