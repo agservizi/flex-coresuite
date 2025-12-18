@@ -140,7 +140,7 @@ include __DIR__ . '/../includes/layout/header.php';
             <?php endforeach; ?>
         </select>
     </div>
-    <div class="col-6">
+    <div class="col-12">
         <select class="form-select" name="origin">
             <option value="">Origine</option>
             <option value="admin_installer" <?php echo ($origin === 'admin_installer') ? 'selected' : ''; ?>>Admin/Installer</option>
