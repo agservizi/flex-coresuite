@@ -451,8 +451,6 @@ function setupNotifications() {
     sheet.classList.add('show');
     backdrop.classList.add('show');
     document.body.classList.add('no-scroll');
-    await markNotificationsSeen();
-    await refresh();
   };
 
   const close = () => {
