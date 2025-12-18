@@ -119,13 +119,19 @@ include __DIR__ . '/../includes/layout/header.php';
                             <?php echo csrf_field(); ?>
                             <input type="hidden" name="action" value="resend">
                             <input type="hidden" name="id" value="<?php echo (int)$u['id']; ?>">
-                            <button class="btn btn-outline-primary btn-sm">Re-invia</button>
+                            <button class="btn btn-outline-primary btn-sm d-inline-flex align-items-center justify-content-center" title="Re-invia" aria-label="Re-invia">
+                                <i class="bi bi-arrow-repeat"></i>
+                                <span class="visually-hidden">Re-invia</span>
+                            </button>
                         </form>
                         <form method="post" class="d-inline ms-1" onsubmit="return confirm('Cancellare questo installer?');">
                             <?php echo csrf_field(); ?>
                             <input type="hidden" name="action" value="delete">
                             <input type="hidden" name="id" value="<?php echo (int)$u['id']; ?>">
-                            <button class="btn btn-outline-danger btn-sm">Elimina</button>
+                            <button class="btn btn-outline-danger btn-sm d-inline-flex align-items-center justify-content-center" title="Elimina" aria-label="Elimina">
+                                <i class="bi bi-trash"></i>
+                                <span class="visually-hidden">Elimina</span>
+                            </button>
                         </form>
                     </td>
                 </tr>
