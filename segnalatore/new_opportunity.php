@@ -60,7 +60,6 @@ $name = $parts[0] . ' ' . (isset($parts[1]) ? substr($parts[1], 0, 1) . '.' : ''
 ?>
 <div class="d-flex justify-content-between align-items-center mb-3">
     <div>
-        <div class="bite">Segnalatore</div>
         <h1 class="h5 fw-bold mb-0">Nuova segnalazione</h1>
     </div>
     <div class="d-flex gap-2">
