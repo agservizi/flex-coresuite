@@ -620,6 +620,8 @@ function create_segnalazione(array $data, array $files, int $userId): int
         $segId = (int)$pdo->lastInsertId();
 
         // handle documents
+        // Temporaneamente disabilitato per debug
+        /*
         if (!empty($files['docs']) && is_array($files['docs']['name'])) {
             $count = count($files['docs']['name']);
             $docStmt = $pdo->prepare('INSERT INTO segnalazione_docs (segnalazione_id, path, original_name, mime, size) VALUES (:sid, :path, :orig, :mime, :size)');
@@ -657,6 +659,7 @@ function create_segnalazione(array $data, array $files, int $userId): int
                 ]);
             }
         }
+        */
 
         $pdo->commit();
         return $segId;
