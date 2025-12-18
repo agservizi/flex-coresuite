@@ -127,6 +127,7 @@ include __DIR__ . '/../includes/layout/header.php';
                     <div class="fw-semibold"><?php echo sanitize($offer['name']); ?></div>
                     <div class="small text-muted"><?php echo sanitize($offer['manager_name']); ?></div>
                 </div>
+                <div class="fw-bold text-primary">€ <?php echo number_format($offer['commission'], 2, ',', '.'); ?></div>
             </button>
         <?php endforeach; ?>
     </div>
