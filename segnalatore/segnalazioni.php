@@ -4,6 +4,8 @@ require_role('segnalatore');
 require_once __DIR__ . '/../includes/helpers.php';
 
 $user = current_user();
+$parts = explode(' ', $user['name']);
+$name = $parts[0] . ' ' . (isset($parts[1]) ? substr($parts[1], 0, 1) . '.' : '');
 $segnalazioni = list_segnalazioni(['created_by' => (int)$user['id']]);
 $pageTitle = 'Le mie segnalazioni';
 $bottomNav = '
