@@ -12,6 +12,7 @@ $pageTitle = $pageTitle ?? APP_NAME;
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta name="asset-version" content="<?php echo asset_version(); ?>">
     <?php if (current_user()): ?>
         <meta name="csrf-token" content="<?php echo csrf_token(); ?>">
     <?php endif; ?>
@@ -26,7 +27,7 @@ $pageTitle = $pageTitle ?? APP_NAME;
     <link rel="apple-touch-icon" href="/public/favicon-180.png" sizes="180x180">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="/assets/css/style.css">
+    <link rel="stylesheet" href="<?php echo asset_url('/assets/css/style.css'); ?>">
 </head>
 <body class="bg-base text-body">
     <div class="toast-stack" aria-live="polite" aria-atomic="true"></div>

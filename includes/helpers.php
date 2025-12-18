@@ -98,6 +98,39 @@ function get_vapid_private_key(): ?string
     return $key ?: null;
 }
 
+function asset_version(?string $path = null): string
+{
+    $envVersion = getenv('ASSET_VERSION');
+
+    if ($path) {
+        $fullPath = realpath(__DIR__ . '/../' . ltrim($path, '/'));
+        if ($fullPath && file_exists($fullPath)) {
+            $mtime = (int)filemtime($fullPath);
+            if ($mtime > 0) {
+                return (string)$mtime;
+            }
+        }
+    }
+
+    if ($envVersion) {
+        return (string)$envVersion;
+    }
+
+    static $fallback;
+    if (!$fallback) {
+        $fallback = (string)((int)filemtime(__FILE__) ?: time());
+    }
+
+    return $fallback;
+}
+
+function asset_url(string $path): string
+{
+    $version = asset_version($path);
+    $separator = str_contains($path, '?') ? '&' : '?';
+    return $path . $separator . 'v=' . rawurlencode($version);
+}
+
 function build_vapid_jwt(string $audience, string $subject, string $privateKeyPem): string
 {
     $header = base64url_encode(json_encode(['alg' => 'ES256', 'typ' => 'JWT'], JSON_UNESCAPED_SLASHES));

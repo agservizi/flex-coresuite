@@ -187,15 +187,17 @@ async function registerPush() {
 
   const vapidMeta = document.querySelector('meta[name="vapid-public-key"]');
   const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+  const assetVersionMeta = document.querySelector('meta[name="asset-version"]');
   const publicKey = vapidMeta ? vapidMeta.content : '';
   const csrfToken = csrfMeta ? csrfMeta.content : '';
+  const swVersion = assetVersionMeta ? `?v=${encodeURIComponent(assetVersionMeta.content)}` : '';
   if (!publicKey || !csrfToken) return;
 
   try {
     const permission = await Notification.requestPermission();
     if (permission !== 'granted') return;
 
-    const registration = await navigator.serviceWorker.register('/public/sw.js');
+    const registration = await navigator.serviceWorker.register(`/public/sw.js${swVersion}`);
     let subscription = await registration.pushManager.getSubscription();
     if (!subscription) {
       subscription = await registration.pushManager.subscribe({
