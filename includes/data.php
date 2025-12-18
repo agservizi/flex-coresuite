@@ -689,8 +689,8 @@ function list_segnalazioni(array $filters = []): array
                    (SELECT COUNT(*) FROM segnalazione_docs d WHERE d.segnalazione_id = s.id) AS doc_count
             FROM segnalazioni s
             JOIN offers o ON s.offer_id = o.id
-            JOIN gestori g ON s.manager_id = g.id
-            JOIN users u ON s.created_by = u.id
+            LEFT JOIN gestori g ON s.manager_id = g.id
+            LEFT JOIN users u ON s.created_by = u.id
             WHERE 1=1';
     $params = [];
 
