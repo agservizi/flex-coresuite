@@ -26,9 +26,11 @@ $pageTitle = $pageTitle ?? APP_NAME;
             <div class="fw-bold">Flex</div>
         </div>
         <?php if (current_user()): ?>
-        <div class="text-end">
-            <div class="small fw-semibold text-primary text-truncate" style="max-width:120px;"><?php echo sanitize(current_user()['name']); ?></div>
-            <div class="badge bg-body-tertiary text-muted text-uppercase border"><?php echo sanitize(current_user()['role']); ?></div>
+        <div class="d-flex align-items-center gap-2">
+            <div class="text-end">
+                <div class="small fw-semibold text-primary text-truncate" style="max-width:120px;"><?php echo sanitize(current_user()['name']); ?></div>
+                <div class="badge bg-body-tertiary text-muted text-uppercase border"><?php echo sanitize(current_user()['role']); ?></div>
+            </div>
         </div>
         <?php endif; ?>
     </header>

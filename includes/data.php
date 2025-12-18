@@ -26,6 +26,12 @@ function get_users(): array
     return db()->query('SELECT id, role, name, email, password FROM users ORDER BY id')->fetchAll();
 }
 
+function get_installers(): array
+{
+    seed_data();
+    return db()->query('SELECT id, name, email, password_reset_token, password_reset_expires, created_at FROM users WHERE role = "installer" ORDER BY id DESC')->fetchAll();
+}
+
 function find_user_by_email(string $email): ?array
 {
     seed_data();
@@ -72,6 +78,47 @@ function create_installer(string $name, string $email, ?string $password = null,
     }
 
     return ['id' => $id, 'reset_token' => $token];
+}
+
+function delete_installer(int $id): void
+{
+    seed_data();
+    $pdo = db();
+
+    // prevent deleting admins or self
+    $stmt = $pdo->prepare('SELECT role FROM users WHERE id = :id');
+    $stmt->execute(['id' => $id]);
+    $user = $stmt->fetch();
+    if (!$user) {
+        throw new InvalidArgumentException('Installer non trovato');
+    }
+    if ($user['role'] !== 'installer') {
+        throw new InvalidArgumentException('Non puoi cancellare questo utente');
+    }
+
+    $countStmt = $pdo->prepare('SELECT COUNT(*) FROM opportunities WHERE installer_id = :id');
+    $countStmt->execute(['id' => $id]);
+    if ((int)$countStmt->fetchColumn() > 0) {
+        throw new RuntimeException('Impossibile cancellare: ci sono opportunity collegate');
+    }
+
+    $del = $pdo->prepare('DELETE FROM users WHERE id = :id');
+    $del->execute(['id' => $id]);
+}
+
+function resend_installer_invite(int $id): string
+{
+    seed_data();
+    $pdo = db();
+    $stmt = $pdo->prepare('SELECT id, name, email, role FROM users WHERE id = :id LIMIT 1');
+    $stmt->execute(['id' => $id]);
+    $user = $stmt->fetch();
+    if (!$user || $user['role'] !== 'installer') {
+        throw new InvalidArgumentException('Installer non trovato');
+    }
+    $token = generate_password_reset((int)$user['id'], $pdo);
+    notify_installer_credentials($user['name'], $user['email'], $token);
+    return $token;
 }
 
 function generate_password_reset(int $userId, ?PDO $pdo = null, int $ttlMinutes = 1440): string

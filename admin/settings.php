@@ -5,7 +5,6 @@ require_once __DIR__ . '/../includes/helpers.php';
 
 $gestori = get_gestori();
 $offers = get_offers();
-$users = get_users();
 $message = null;
 $error = null;
 
@@ -73,7 +72,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $gestori = get_gestori();
         $offers = get_offers();
-        $users = get_users();
     }
 }
 
@@ -129,39 +127,6 @@ include __DIR__ . '/../includes/layout/header.php';
                 <span class="badge <?php echo $g['active'] ? 'bg-success' : 'bg-secondary'; ?>"><?php echo $g['active'] ? 'Attivo' : 'Off'; ?></span>
             </div>
         <?php endforeach; ?>
-    </div>
-</div>
-
-<div class="card-soft p-3 mb-3">
-    <div class="d-flex justify-content-between align-items-center mb-2">
-        <div>
-            <div class="bite">Installer</div>
-            <h2 class="h6 fw-bold mb-0">Crea nuovo</h2>
-        </div>
-    </div>
-    <form method="post" class="row g-2 align-items-center">
-        <?php echo csrf_field(); ?>
-        <input type="hidden" name="entity" value="installer">
-        <div class="col-12">
-            <input type="text" class="form-control" name="name" placeholder="Nome completo" required>
-        </div>
-        <div class="col-12">
-            <input type="email" class="form-control" name="email" placeholder="Email aziendale" required>
-        </div>
-        <div class="col-12">
-            <button class="btn btn-primary w-100 btn-sm">Invia invito</button>
-        </div>
-    </form>
-    <div class="list-group list-compact mt-2">
-        <?php foreach ($users as $u): if ($u['role'] !== 'installer') continue; ?>
-            <div class="list-group-item d-flex justify-content-between align-items-center">
-                <div><?php echo sanitize($u['name']); ?> <span class="text-muted small"><?php echo sanitize($u['email']); ?></span></div>
-                <span class="badge bg-secondary">Installer</span>
-            </div>
-        <?php endforeach; ?>
-        <?php if (!array_filter($users, fn($u) => $u['role'] === 'installer')): ?>
-            <div class="list-group-item text-muted">Nessun installer presente.</div>
-        <?php endif; ?>
     </div>
 </div>
 

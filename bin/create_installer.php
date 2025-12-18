@@ -9,7 +9,7 @@ $stmt->execute([
     'role' => 'installer',
     'name' => 'Installer Flex',
     'email' => 'installer@agservizi.it',
-    'password' => password_hash('Giogiu2123@', PASSWORD_DEFAULT),
+    'password' => null,
 ]);
 
-echo "Installer created/updated.\n";
+echo "Installer created/updated with null password (requires reset token).\n";

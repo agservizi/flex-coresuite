@@ -64,6 +64,7 @@ include __DIR__ . '/../includes/layout/header.php';
         <a class="btn btn-sm btn-primary" href="/admin/opportunities.php">Gestisci</a>
     </div>
     <div class="d-grid gap-2">
+        <a class="btn btn-outline-secondary w-100 btn-pill" href="/admin/installers.php">Installer</a>
         <a class="btn btn-outline-secondary w-100 btn-pill" href="/admin/opportunities.php">Opportunity</a>
         <a class="btn btn-outline-secondary w-100 btn-pill" href="/admin/report.php">Report</a>
         <a class="btn btn-outline-secondary w-100 btn-pill" href="/admin/settings.php">Impostazioni</a>

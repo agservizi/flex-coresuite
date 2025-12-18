@@ -197,6 +197,8 @@ body.no-scroll {
     animation: toast-in 180ms ease-out;
 }
 
+.toast-item.fade-out { animation: toast-out 200ms ease-in forwards; }
+
 .toast-item.success { border-color: #c7f9cc; background: #f0fff4; }
 .toast-item.error { border-color: #fecdd3; background: #fff1f2; }
 .toast-item.info { border-color: #bfdbfe; background: #eff6ff; }
@@ -209,6 +211,11 @@ body.no-scroll {
 @keyframes toast-in {
     from { opacity: 0; transform: translateY(-8px); }
     to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes toast-out {
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(-6px); }
 }
 
 @media (max-width: 575px) {
