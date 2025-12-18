@@ -316,6 +316,9 @@ function add_opportunity(array $data): array
         'month' => (int)$now->format('m'),
         'created_at' => $now->format('Y-m-d'),
     ];
+
+}
+
 function update_opportunity_status(int $id, string $status, int $changedBy): array
 {
     seed_data();
