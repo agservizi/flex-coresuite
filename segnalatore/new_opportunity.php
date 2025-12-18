@@ -114,6 +114,7 @@ $name = $parts[0] . ' ' . (isset($parts[1]) ? substr($parts[1], 0, 1) . '.' : ''
         </div>
     </form>
 </div>
+<div class="sheet-backdrop" data-offer-picker-backdrop></div>
 <div class="sheet" data-offer-picker>
     <div class="sheet-handle"></div>
     <div class="d-flex justify-content-between align-items-center mb-3">
