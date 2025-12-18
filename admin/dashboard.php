@@ -5,6 +5,10 @@ require_once __DIR__ . '/../includes/helpers.php';
 
 $ops = get_opportunities();
 $summary = summarize($ops);
+$users = get_users();
+$invalid_users = array_filter($users, function($user) {
+    return !in_array($user['role'], ['admin', 'installer', 'segnalatore']) || empty($user['role']);
+});
 
 $pageTitle = 'Dashboard Admin';
 $bottomNav = '
@@ -57,6 +61,27 @@ include __DIR__ . '/../includes/layout/header.php';
         </div>
     </div>
 </div>
+
+<?php if (count($invalid_users) > 0): ?>
+<div class="card-soft p-3 mb-3">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <div class="bite text-danger">Utenti con ruolo non valido</div>
+        <span class="badge bg-danger"><?php echo count($invalid_users); ?></span>
+    </div>
+    <div class="list-group">
+        <?php foreach ($invalid_users as $user): ?>
+        <div class="list-group-item d-flex justify-content-between align-items-center">
+            <div>
+                <strong><?php echo htmlspecialchars($user['name']); ?></strong> (<?php echo htmlspecialchars($user['email']); ?>)
+            </div>
+            <div>
+                Ruolo attuale: <code><?php echo htmlspecialchars($user['role'] ?: 'vuoto'); ?></code>
+            </div>
+        </div>
+        <?php endforeach; ?>
+    </div>
+</div>
+<?php endif; ?>
 
 <div class="card-soft p-3">
     <div class="d-flex justify-content-between align-items-center mb-2">

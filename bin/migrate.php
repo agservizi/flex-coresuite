@@ -27,6 +27,8 @@ $pdo->exec('ALTER TABLE users MODIFY COLUMN password VARCHAR(255) NULL');
 $pdo->exec('ALTER TABLE users ADD COLUMN IF NOT EXISTS password_reset_token VARCHAR(255) NULL');
 $pdo->exec('ALTER TABLE users ADD COLUMN IF NOT EXISTS password_reset_expires DATETIME NULL');
 $pdo->exec('CREATE INDEX IF NOT EXISTS idx_user_reset_token ON users (password_reset_token)');
+// Ensure role enum supports segnalatore
+$pdo->exec("ALTER TABLE users MODIFY COLUMN role ENUM('admin','installer','segnalatore') NOT NULL");
 
 // Ensure opportunity_code column exists and is populated uniquely
 $pdo->exec('ALTER TABLE opportunities ADD COLUMN IF NOT EXISTS opportunity_code VARCHAR(32) NULL AFTER id');

@@ -3,7 +3,10 @@ require_once __DIR__ . '/../includes/permissions.php';
 require_once __DIR__ . '/../includes/helpers.php';
 
 if (current_user()) {
-    $target = is_admin() ? '/admin/dashboard.php' : '/installer/dashboard.php';
+    $user = current_user();
+    $target = $user['role'] === 'admin'
+        ? '/admin/dashboard.php'
+        : ($user['role'] === 'segnalatore' ? '/segnalatore/new_opportunity.php' : '/installer/dashboard.php');
     header("Location: {$target}");
     exit;
 }
@@ -49,7 +52,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         'path' => '/',
                     ]);
                 }
-                $target = $user['role'] === 'admin' ? '/admin/dashboard.php' : '/installer/dashboard.php';
+                $target = $user['role'] === 'admin'
+                    ? '/admin/dashboard.php'
+                    : ($user['role'] === 'segnalatore' ? '/segnalatore/new_opportunity.php' : '/installer/dashboard.php');
                 header("Location: {$target}");
                 exit;
             }
