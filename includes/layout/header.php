@@ -44,6 +44,7 @@ $pageTitle = $pageTitle ?? APP_NAME;
                 <span class="notif-dot" data-notification-badge></span>
             </button>
             <div class="text-end">
+                <div class="small fw-semibold text-primary text-truncate" style="max-width:120px;"><?php $parts = explode(' ', current_user()['name']); echo sanitize($parts[0] . ' ' . (isset($parts[1]) ? substr($parts[1], 0, 1) . '.' : '')); ?></div>
                 <div class="badge bg-body-tertiary text-muted text-uppercase border"><?php echo sanitize(current_user()['role']); ?></div>
             </div>
         </div>

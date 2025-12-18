@@ -4,8 +4,6 @@ require_role('segnalatore');
 require_once __DIR__ . '/../includes/helpers.php';
 
 $user = current_user();
-$parts = explode(' ', $user['name']);
-$name = $parts[0] . ' ' . (isset($parts[1]) ? substr($parts[1], 0, 1) . '.' : '');
 $segnalazioni = list_segnalazioni(['created_by' => (int)$user['id']]);
 $summary = [
     'total' => count($segnalazioni),
@@ -33,7 +31,6 @@ $name = $parts[0] . ' ' . (isset($parts[1]) ? substr($parts[1], 0, 1) . '.' : ''
         <h1 class="h5 fw-bold mb-0">Dashboard</h1>
     </div>
     <div class="d-flex gap-2">
-        <span class="text-muted small"><?php echo sanitize($name); ?></span>
         <button class="btn btn-outline-light btn-sm" data-toggle-theme aria-label="Tema">Tema</button>
         <a class="btn btn-outline-secondary btn-sm" href="/auth/logout.php">Logout</a>
     </div>
