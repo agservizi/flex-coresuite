@@ -115,24 +115,26 @@ include __DIR__ . '/../includes/layout/header.php';
                     <td class="text-muted small"><?php echo sanitize($u['email']); ?></td>
                     <td class="text-muted small"><?php echo sanitize($u['created_at']); ?></td>
                     <td class="text-end">
-                        <form method="post" class="d-inline">
-                            <?php echo csrf_field(); ?>
-                            <input type="hidden" name="action" value="resend">
-                            <input type="hidden" name="id" value="<?php echo (int)$u['id']; ?>">
-                            <button class="btn btn-outline-primary btn-sm d-inline-flex align-items-center justify-content-center" title="Re-invia" aria-label="Re-invia">
-                                <i class="bi bi-arrow-repeat"></i>
-                                <span class="visually-hidden">Re-invia</span>
-                            </button>
-                        </form>
-                        <form method="post" class="d-inline ms-1" onsubmit="return confirm('Cancellare questo installer?');">
-                            <?php echo csrf_field(); ?>
-                            <input type="hidden" name="action" value="delete">
-                            <input type="hidden" name="id" value="<?php echo (int)$u['id']; ?>">
-                            <button class="btn btn-outline-danger btn-sm d-inline-flex align-items-center justify-content-center" title="Elimina" aria-label="Elimina">
-                                <i class="bi bi-trash"></i>
-                                <span class="visually-hidden">Elimina</span>
-                            </button>
-                        </form>
+                        <div class="d-flex justify-content-end align-items-center gap-2 flex-nowrap">
+                            <form method="post" class="mb-0">
+                                <?php echo csrf_field(); ?>
+                                <input type="hidden" name="action" value="resend">
+                                <input type="hidden" name="id" value="<?php echo (int)$u['id']; ?>">
+                                <button class="btn btn-outline-primary btn-sm d-inline-flex align-items-center justify-content-center" title="Re-invia" aria-label="Re-invia">
+                                    <i class="bi bi-arrow-repeat"></i>
+                                    <span class="visually-hidden">Re-invia</span>
+                                </button>
+                            </form>
+                            <form method="post" class="mb-0" onsubmit="return confirm('Cancellare questo installer?');">
+                                <?php echo csrf_field(); ?>
+                                <input type="hidden" name="action" value="delete">
+                                <input type="hidden" name="id" value="<?php echo (int)$u['id']; ?>">
+                                <button class="btn btn-outline-danger btn-sm d-inline-flex align-items-center justify-content-center" title="Elimina" aria-label="Elimina">
+                                    <i class="bi bi-trash"></i>
+                                    <span class="visually-hidden">Elimina</span>
+                                </button>
+                            </form>
+                        </div>
                     </td>
                 </tr>
             <?php endforeach; ?>
