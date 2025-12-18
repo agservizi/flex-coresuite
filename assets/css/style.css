@@ -125,6 +125,8 @@ body.bg-base {
     left: 0;
     right: 0;
     z-index: 20;
+    box-shadow: none;
+    background: var(--bg-card);
 }
 
 .nav-pill {
