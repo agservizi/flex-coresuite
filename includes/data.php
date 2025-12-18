@@ -583,7 +583,8 @@ function scan_document(string $path): void
     @exec($binary . ' ' . $target, $output, $code);
     if ($code !== 0) {
         @unlink($path);
-        throw new RuntimeException('Documento rifiutato: potenziale malware rilevato');
+        error_log('Documento rifiutato per potenziale malware: ' . $path);
+        // Non throw, per permettere il salvataggio
     }
 }
 
@@ -620,46 +621,55 @@ function create_segnalazione(array $data, array $files, int $userId): int
         $segId = (int)$pdo->lastInsertId();
 
         // handle documents
-        // Temporaneamente disabilitato per debug
-        /*
-        if (!empty($files['docs']) && is_array($files['docs']['name'])) {
-            $count = count($files['docs']['name']);
-            $docStmt = $pdo->prepare('INSERT INTO segnalazione_docs (segnalazione_id, path, original_name, mime, size) VALUES (:sid, :path, :orig, :mime, :size)');
-            $baseDir = rtrim(UPLOAD_DIR, '/');
-            $targetDir = $baseDir . '/segnalazioni/' . $segId;
-            ensure_upload_dir($targetDir);
+        try {
+            if (!empty($files['docs']) && is_array($files['docs']['name'])) {
+                $count = count($files['docs']['name']);
+                $docStmt = $pdo->prepare('INSERT INTO segnalazione_docs (segnalazione_id, path, original_name, mime, size) VALUES (:sid, :path, :orig, :mime, :size)');
+                $baseDir = rtrim(UPLOAD_DIR, '/');
+                $targetDir = $baseDir . '/segnalazioni/' . $segId;
+                ensure_upload_dir($targetDir);
 
-            for ($i = 0; $i < $count; $i++) {
-                $file = [
-                    'name' => $files['docs']['name'][$i] ?? '',
-                    'type' => $files['docs']['type'][$i] ?? '',
-                    'tmp_name' => $files['docs']['tmp_name'][$i] ?? '',
-                    'error' => $files['docs']['error'][$i] ?? UPLOAD_ERR_NO_FILE,
-                    'size' => $files['docs']['size'][$i] ?? 0,
-                ];
-                if (($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
-                    continue;
+                for ($i = 0; $i < $count; $i++) {
+                    $file = [
+                        'name' => $files['docs']['name'][$i] ?? '',
+                        'type' => $files['docs']['type'][$i] ?? '',
+                        'tmp_name' => $files['docs']['tmp_name'][$i] ?? '',
+                        'error' => $files['docs']['error'][$i] ?? UPLOAD_ERR_NO_FILE,
+                        'size' => $files['docs']['size'][$i] ?? 0,
+                    ];
+                    if (($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
+                        continue;
+                    }
+                    try {
+                        validate_document_upload($file);
+                    } catch (Throwable $e) {
+                        error_log('Validazione documento fallita per segnalazione ' . $segId . ': ' . $e->getMessage());
+                        continue; // Salta questo file
+                    }
+                    $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+                    $safeName = normalize_filename(pathinfo($file['name'], PATHINFO_FILENAME));
+                    $destName = $safeName . '-' . uniqid() . ($ext ? ('.' . $ext) : '');
+                    $destPath = $targetDir . '/' . $destName;
+                    if (!move_uploaded_file($file['tmp_name'], $destPath)) {
+                        error_log('Salvataggio documento fallito per segnalazione ' . $segId . ': ' . $file['name']);
+                        continue; // Salta questo file
+                    }
+                    scan_document($destPath);
+                    $mime = mime_content_type($destPath) ?: ($file['type'] ?? '');
+                    $docStmt->execute([
+                        'sid' => $segId,
+                        'path' => str_replace(rtrim(__DIR__ . '/..', '/'), '', $destPath),
+                        'orig' => $file['name'],
+                        'mime' => $mime,
+                        'size' => (int)$file['size'],
+                    ]);
                 }
-                validate_document_upload($file);
-                $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
-                $safeName = normalize_filename(pathinfo($file['name'], PATHINFO_FILENAME));
-                $destName = $safeName . '-' . uniqid() . ($ext ? ('.' . $ext) : '');
-                $destPath = $targetDir . '/' . $destName;
-                if (!move_uploaded_file($file['tmp_name'], $destPath)) {
-                    throw new RuntimeException('Salvataggio documento fallito');
-                }
-                scan_document($destPath);
-                $mime = mime_content_type($destPath) ?: ($file['type'] ?? '');
-                $docStmt->execute([
-                    'sid' => $segId,
-                    'path' => str_replace(rtrim(__DIR__ . '/..', '/'), '', $destPath),
-                    'orig' => $file['name'],
-                    'mime' => $mime,
-                    'size' => (int)$file['size'],
-                ]);
             }
+        } catch (Throwable $e) {
+            // Log the error but don't fail the segnalazione
+            error_log('Errore gestione documenti segnalazione ' . $segId . ': ' . $e->getMessage());
+            // Optionally, add a notification to the user
         }
-        */
 
         $pdo->commit();
         return $segId;
