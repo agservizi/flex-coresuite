@@ -4,7 +4,7 @@ require_role('segnalatore');
 require_once __DIR__ . '/../includes/helpers.php';
 
 $user = current_user();
-$segnalazioni = list_segnalazioni(['created_by' => (int)$user['id']]);
+$segnalazioni = list_segnalazioni(); // Temporaneo: mostra tutte per debug
 $pageTitle = 'Le mie segnalazioni';
 $bottomNav = '
     <a class="nav-pill" href="/segnalatore/dashboard.php"><span class="dot"></span><span>Home</span></a>
