@@ -342,6 +342,35 @@ function notify_installer_credentials(string $name, string $email, string $token
     send_resend_email($email, $subject, $html, $text);
 }
 
+function notify_segnalatore_credentials(string $name, string $email, string $token): void
+{
+    if (!$email) {
+        return;
+    }
+    $baseUrl = getenv('APP_URL') ?: (getenv('BASE_URL') ?: '/');
+    if (!str_contains($baseUrl, 'http')) {
+        $baseUrl = rtrim($baseUrl, '/');
+    }
+    $resetUrl = rtrim($baseUrl, '/') . '/auth/set_password.php?token=' . urlencode($token);
+
+    $subject = 'Benvenuto in ' . (APP_NAME ?? 'Flex') . ' - accesso segnalatore';
+    $body = '<p>Ciao ' . htmlspecialchars($name) . ',</p>' .
+        '<p>Il tuo account segnalatore è stato creato. Imposta la tua password cliccando sul pulsante qui sotto.</p>' .
+        '<table style="border-collapse:collapse;width:100%;font-size:14px;">'
+        . '<tr><td style="padding:6px 0;color:#6c757d;">Email</td><td style="padding:6px 0;font-weight:600;">' . htmlspecialchars($email) . '</td></tr>'
+        . '</table>'
+        . '<p style="margin-top:12px;color:#6c757d;font-size:13px;">Il link scade tra 24 ore.</p>';
+
+    $html = render_email_wrapper('Imposta la tua password', $body, 'Imposta password', $resetUrl, APP_NAME . ' · ' . (getenv('COMPANY_NAME') ?: ''));
+
+    $text = "Ciao $name,\nIl tuo account segnalatore è stato creato.\n" .
+        'Email: ' . $email . "\n" .
+        'Imposta la password: ' . $resetUrl . "\n" .
+        'Il link scade tra 24 ore.';
+
+    send_resend_email($email, $subject, $html, $text);
+}
+
 function notify_installer_status_change(int $installerId, string $installerName, string $installerEmail, string $opCode, string $newStatus): void
 {
     if (!$installerEmail) {

@@ -18,7 +18,8 @@ function require_role(string $role): void
 {
     require_login();
     $user = current_user();
-    if (!$user || $user['role'] !== $role) {
+    $required = explode('|', $role);
+    if (!$user || !in_array($user['role'], $required, true)) {
         header('HTTP/1.1 403 Forbidden');
         echo 'Accesso negato';
         exit;

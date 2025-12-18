@@ -45,3 +45,8 @@ INSERT INTO opportunities (first_name,last_name,notes,offer_id,manager_id,commis
 ```
 
 Password hashes corrispondono a: admin123 / installer123.
+
+## Manutenzione e sicurezza segnalazioni
+
+- Antivirus (opzionale): imposta `CLAMSCAN_CMD` nell'ambiente (es. `/usr/local/bin/clamscan`) per abilitare la scansione dei documenti caricati. In assenza della variabile la scansione viene saltata.
+- Cleanup allegati rifiutati: esegui periodicamente `php bin/cleanup_segnalazioni.php 30` per rimuovere i file di segnalazioni rifiutate più vecchi di 30 giorni (puoi variare il numero di giorni).

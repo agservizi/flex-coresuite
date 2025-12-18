@@ -22,6 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   setupOfferPicker();
   setupSavedFilters();
+  setupDocPreviews();
 
   injectToastStack();
   hydrateFlashMessages();
@@ -484,6 +485,35 @@ function setupNotifications() {
 
   refresh();
   updateBadge();
+}
+
+function setupDocPreviews() {
+  const inputs = document.querySelectorAll('[data-doc-preview]');
+  inputs.forEach(input => {
+    const list = document.querySelector('[data-doc-preview-list]');
+    if (!list) return;
+    input.addEventListener('change', () => {
+      list.innerHTML = '';
+      const files = Array.from(input.files || []);
+      files.forEach(file => {
+        const item = document.createElement('div');
+        item.className = 'doc-preview-item';
+        const name = document.createElement('div');
+        name.className = 'doc-name';
+        name.textContent = file.name;
+        item.appendChild(name);
+
+        if (file.type.startsWith('image/')) {
+          const img = document.createElement('img');
+          img.className = 'doc-thumb';
+          img.alt = file.name;
+          img.src = URL.createObjectURL(file);
+          item.appendChild(img);
+        }
+        list.appendChild(item);
+      });
+    });
+  });
 }
 
 function setupSavedFilters() {

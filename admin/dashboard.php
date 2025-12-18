@@ -11,6 +11,8 @@ $bottomNav = '
     <a class="nav-pill active" href="/admin/dashboard.php"><span class="dot"></span><span>Home</span></a>
     <a class="nav-pill" href="/admin/opportunities.php"><span class="dot"></span><span>Opportunity</span></a>
     <a class="nav-pill" href="/admin/report.php"><span class="dot"></span><span>Report</span></a>
+    <a class="nav-pill" href="/admin/segnalazioni.php"><span class="dot"></span><span>Segnalazioni</span></a>
+    <a class="nav-pill" href="/admin/segnalatori.php"><span class="dot"></span><span>Segnalatori</span></a>
     <a class="nav-pill" href="/admin/settings.php"><span class="dot"></span><span>Impostazioni</span></a>
 ';
 include __DIR__ . '/../includes/layout/header.php';
@@ -65,6 +67,7 @@ include __DIR__ . '/../includes/layout/header.php';
     </div>
     <div class="d-grid gap-2">
         <a class="btn btn-outline-secondary w-100 btn-pill" href="/admin/installers.php">Installer</a>
+        <a class="btn btn-outline-secondary w-100 btn-pill" href="/admin/segnalatori.php">Segnalatori</a>
         <a class="btn btn-outline-secondary w-100 btn-pill" href="/admin/opportunities.php">Opportunity</a>
         <a class="btn btn-outline-secondary w-100 btn-pill" href="/admin/report.php">Report</a>
         <a class="btn btn-outline-secondary w-100 btn-pill" href="/admin/settings.php">Impostazioni</a>

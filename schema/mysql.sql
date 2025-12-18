@@ -1,7 +1,7 @@
 -- MySQL schema for Flex (Coresuite)
 CREATE TABLE IF NOT EXISTS users (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    role ENUM('admin','installer') NOT NULL,
+    role ENUM('admin','installer','segnalatore') NOT NULL,
     name VARCHAR(120) NOT NULL,
     email VARCHAR(180) NOT NULL UNIQUE,
     password VARCHAR(255) NULL,
@@ -44,6 +44,38 @@ CREATE TABLE IF NOT EXISTS opportunities (
     CONSTRAINT fk_opportunities_offer FOREIGN KEY (offer_id) REFERENCES offers(id),
     CONSTRAINT fk_opportunities_manager FOREIGN KEY (manager_id) REFERENCES gestori(id),
     CONSTRAINT fk_opportunities_installer FOREIGN KEY (installer_id) REFERENCES users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS segnalazioni (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    first_name VARCHAR(120) NOT NULL,
+    last_name VARCHAR(120) NOT NULL,
+    offer_id INT UNSIGNED NOT NULL,
+    manager_id INT UNSIGNED NOT NULL,
+    status ENUM('In attesa','Accettata','Rifiutata') NOT NULL DEFAULT 'In attesa',
+    created_by INT UNSIGNED NOT NULL,
+    opportunity_id INT UNSIGNED NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    reviewed_by INT UNSIGNED NULL,
+    reviewed_at TIMESTAMP NULL,
+    CONSTRAINT fk_segnalazioni_offer FOREIGN KEY (offer_id) REFERENCES offers(id),
+    CONSTRAINT fk_segnalazioni_manager FOREIGN KEY (manager_id) REFERENCES gestori(id),
+    CONSTRAINT fk_segnalazioni_user FOREIGN KEY (created_by) REFERENCES users(id),
+    CONSTRAINT fk_segnalazioni_opportunity FOREIGN KEY (opportunity_id) REFERENCES opportunities(id),
+    INDEX idx_segnalazioni_status_time (status, created_at),
+    INDEX idx_segnalazioni_creator_time (created_by, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS segnalazione_docs (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    segnalazione_id INT UNSIGNED NOT NULL,
+    path VARCHAR(255) NOT NULL,
+    original_name VARCHAR(255) NOT NULL,
+    mime VARCHAR(100) NOT NULL,
+    size INT UNSIGNED NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_segnalazione_docs FOREIGN KEY (segnalazione_id) REFERENCES segnalazioni(id) ON DELETE CASCADE,
+    INDEX idx_segnalazione_docs_seg (segnalazione_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS login_attempts (
