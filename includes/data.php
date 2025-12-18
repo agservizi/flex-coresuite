@@ -721,6 +721,53 @@ function count_segnalazioni(array $filters = []): int
     return (int)$stmt->fetchColumn();
 }
 
+function list_segnalazioni(array $filters = []): array
+{
+    seed_data();
+    $sql = 'SELECT s.id, s.first_name, s.last_name, s.offer_id, s.manager_id, s.status, s.created_by, s.created_at, s.opportunity_id,
+                   o.name AS offer_name, g.name AS manager_name, u.name AS creator_name,
+                   (SELECT COUNT(*) FROM segnalazione_docs d WHERE d.segnalazione_id = s.id) AS doc_count
+            FROM segnalazioni s
+            JOIN offers o ON s.offer_id = o.id
+            LEFT JOIN gestori g ON s.manager_id = g.id
+            LEFT JOIN users u ON s.created_by = u.id
+            WHERE 1=1';
+    $params = [];
+
+    if (!empty($filters['status'])) {
+        $sql .= ' AND s.status = :status';
+        $params['status'] = $filters['status'];
+    }
+    if (!empty($filters['created_by'])) {
+        $sql .= ' AND s.created_by = :created_by';
+        $params['created_by'] = (int)$filters['created_by'];
+    }
+    if (!empty($filters['search'])) {
+        $sql .= ' AND (s.first_name LIKE :search OR s.last_name LIKE :search)';
+        $params['search'] = '%' . $filters['search'] . '%';
+    }
+
+    $sql .= ' ORDER BY s.created_at DESC, s.id DESC';
+
+    if (!empty($filters['limit'])) {
+        $sql .= ' LIMIT :limit';
+        $params['limit'] = (int)$filters['limit'];
+        if (!empty($filters['offset'])) {
+            $sql .= ' OFFSET :offset';
+            $params['offset'] = (int)$filters['offset'];
+        }
+    }
+
+    $stmt = db()->prepare($sql);
+    foreach ($params as $k => $v) {
+        $type = is_int($v) ? PDO::PARAM_INT : PDO::PARAM_STR;
+        if ($k === 'limit' || $k === 'offset') $type = PDO::PARAM_INT;
+        $stmt->bindValue(':' . $k, $v, $type);
+    }
+    $stmt->execute();
+    return $stmt->fetchAll();
+}
+
 function get_segnalazione(int $id): ?array
 {
     $stmt = db()->prepare('SELECT s.*, o.name AS offer_name, g.name AS manager_name, u.name AS creator_name, u.email AS creator_email
