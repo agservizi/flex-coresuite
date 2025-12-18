@@ -25,6 +25,12 @@ function verify_csrf(): bool
     return is_string($sent) && hash_equals(csrf_token(), $sent);
 }
 
+function verify_csrf_header(): bool
+{
+    $sent = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+    return is_string($sent) && hash_equals(csrf_token(), $sent);
+}
+
 function month_options(): array
 {
     $months = [];
@@ -62,6 +68,91 @@ function summarize(array $ops): array
         $summary['commission_total'] += (float)$op['commission'];
     }
     return $summary;
+}
+
+function base64url_encode(string $data): string
+{
+    return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
+}
+
+function get_vapid_public_key(): ?string
+{
+    $key = getenv('VAPID_PUBLIC_KEY') ?: null;
+    return $key ?: null;
+}
+
+function get_vapid_private_key(): ?string
+{
+    $key = getenv('VAPID_PRIVATE_KEY_PEM') ?: getenv('VAPID_PRIVATE_KEY') ?: null;
+    if ($key && str_contains($key, '\\n')) {
+        $key = str_replace('\\n', "\n", $key);
+    }
+    return $key ?: null;
+}
+
+function build_vapid_jwt(string $audience, string $subject, string $privateKeyPem): string
+{
+    $header = base64url_encode(json_encode(['alg' => 'ES256', 'typ' => 'JWT'], JSON_UNESCAPED_SLASHES));
+    $payload = base64url_encode(json_encode([
+        'aud' => $audience,
+        'exp' => time() + 43200, // 12h
+        'sub' => $subject,
+    ], JSON_UNESCAPED_SLASHES));
+
+    $data = $header . '.' . $payload;
+    $signature = '';
+    if (!openssl_sign($data, $signature, $privateKeyPem, OPENSSL_ALGO_SHA256)) {
+        throw new RuntimeException('Impossibile firmare il token VAPID');
+    }
+
+    return $data . '.' . base64url_encode($signature);
+}
+
+function send_push_notification(array $subscriptions, string $title, string $body): void
+{
+    if (empty($subscriptions)) {
+        return;
+    }
+    $publicKey = get_vapid_public_key();
+    $privateKey = get_vapid_private_key();
+    if (!$publicKey || !$privateKey) {
+        return;
+    }
+    $subject = getenv('VAPID_SUBJECT') ?: ('mailto:' . (getenv('RESEND_FROM') ?: 'no-reply@example.com'));
+
+    foreach ($subscriptions as $sub) {
+        $endpoint = $sub['endpoint'] ?? '';
+        if (!$endpoint) {
+            continue;
+        }
+        $aud = parse_url($endpoint);
+        if (empty($aud['scheme']) || empty($aud['host'])) {
+            continue;
+        }
+        $audience = $aud['scheme'] . '://' . $aud['host'] . (!empty($aud['port']) ? ':' . $aud['port'] : '');
+
+        try {
+            $jwt = build_vapid_jwt($audience, $subject, $privateKey);
+            $headers = [
+                'TTL: 60',
+                'Authorization: WebPush ' . $jwt,
+                'Crypto-Key: p256ecdsa=' . $publicKey,
+            ];
+
+            $ch = curl_init($endpoint);
+            curl_setopt_array($ch, [
+                CURLOPT_POST => true,
+                CURLOPT_HTTPHEADER => $headers,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_TIMEOUT => 10,
+                CURLOPT_POSTFIELDS => '',
+            ]);
+            curl_exec($ch);
+            curl_close($ch);
+        } catch (Throwable $e) {
+            // ignora errori push per non bloccare il flusso principale
+        }
+    }
 }
 
 function send_resend_email($to, string $subject, string $html, ?string $text = null, ?string $from = null): bool

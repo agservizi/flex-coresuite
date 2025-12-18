@@ -66,3 +66,16 @@ CREATE TABLE IF NOT EXISTS opportunity_audit (
     CONSTRAINT fk_audit_user FOREIGN KEY (changed_by) REFERENCES users(id),
     INDEX idx_audit_opportunity_time (opportunity_id, changed_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS push_subscriptions (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id INT UNSIGNED NOT NULL,
+    endpoint VARCHAR(500) NOT NULL,
+    p256dh VARCHAR(255) NOT NULL,
+    auth VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_push_user FOREIGN KEY (user_id) REFERENCES users(id),
+    UNIQUE KEY idx_push_endpoint (endpoint),
+    INDEX idx_push_user (user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

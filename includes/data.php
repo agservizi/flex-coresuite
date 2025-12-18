@@ -395,3 +395,32 @@ function is_login_rate_limited(string $email, string $ip, int $maxAttempts = LOG
     $failures = (int)$stmt->fetchColumn();
     return $failures >= $maxAttempts;
 }
+
+function save_push_subscription(int $userId, string $endpoint, string $p256dh, string $auth): void
+{
+    $pdo = db();
+    $stmt = $pdo->prepare('INSERT INTO push_subscriptions (user_id, endpoint, p256dh, auth) VALUES (:user_id, :endpoint, :p256dh, :auth)
+        ON DUPLICATE KEY UPDATE p256dh = VALUES(p256dh), auth = VALUES(auth), updated_at = CURRENT_TIMESTAMP');
+    $stmt->execute([
+        'user_id' => $userId,
+        'endpoint' => $endpoint,
+        'p256dh' => $p256dh,
+        'auth' => $auth,
+    ]);
+}
+
+function get_push_subscriptions(int $userId): array
+{
+    $stmt = db()->prepare('SELECT endpoint, p256dh, auth FROM push_subscriptions WHERE user_id = :uid');
+    $stmt->execute(['uid' => $userId]);
+    return $stmt->fetchAll();
+}
+
+function get_admin_push_subscriptions(): array
+{
+    $sql = 'SELECT ps.endpoint, ps.p256dh, ps.auth
+            FROM push_subscriptions ps
+            JOIN users u ON ps.user_id = u.id
+            WHERE u.role = "admin"';
+    return db()->query($sql)->fetchAll();
+}

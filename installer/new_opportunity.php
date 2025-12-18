@@ -34,6 +34,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ]);
                 $created['installer_email'] = $user['email'] ?? '';
                 notify_new_opportunity_email($created);
+                $adminSubs = get_admin_push_subscriptions();
+                send_push_notification($adminSubs, 'Nuova opportunity', 'Un installer ha inviato una nuova segnalazione.');
                 $message = 'Opportunity creata con successo';
             } catch (Throwable $e) {
                 $error = 'Errore durante il salvataggio. ' . $e->getMessage();

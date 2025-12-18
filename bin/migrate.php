@@ -56,6 +56,20 @@ if ($rows) {
 $pdo->exec('ALTER TABLE opportunities MODIFY COLUMN opportunity_code VARCHAR(32) NOT NULL');
 $pdo->exec('ALTER TABLE opportunities ADD UNIQUE INDEX IF NOT EXISTS idx_opportunity_code (opportunity_code)');
 
+// Ensure push_subscriptions table exists
+$pdo->exec('CREATE TABLE IF NOT EXISTS push_subscriptions (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id INT UNSIGNED NOT NULL,
+    endpoint VARCHAR(500) NOT NULL,
+    p256dh VARCHAR(255) NOT NULL,
+    auth VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_push_user FOREIGN KEY (user_id) REFERENCES users(id),
+    UNIQUE KEY idx_push_endpoint (endpoint),
+    INDEX idx_push_user (user_id)
+)');
+
 // Nessun seed automatico: gestori e offerte vanno inseriti dall'admin.
 
 echo "Migrations and seed completed.\n";

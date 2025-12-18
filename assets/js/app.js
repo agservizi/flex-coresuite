@@ -18,6 +18,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   injectToastStack();
   hydrateFlashMessages();
+
+  registerPush();
 });
 
 function injectToastStack() {
@@ -151,6 +153,54 @@ function getOptionLabel(select, value) {
   }
   const opt = Array.from(select.options).find(o => o.value === value);
   return opt ? opt.textContent : '';
+}
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
+
+async function registerPush() {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window) || Notification.permission === 'denied') {
+    return;
+  }
+
+  const vapidMeta = document.querySelector('meta[name="vapid-public-key"]');
+  const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+  const publicKey = vapidMeta ? vapidMeta.content : '';
+  const csrfToken = csrfMeta ? csrfMeta.content : '';
+  if (!publicKey || !csrfToken) return;
+
+  try {
+    const permission = await Notification.requestPermission();
+    if (permission !== 'granted') return;
+
+    const registration = await navigator.serviceWorker.register('/public/sw.js');
+    let subscription = await registration.pushManager.getSubscription();
+    if (!subscription) {
+      subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(publicKey),
+      });
+    }
+
+    await fetch('/push/subscribe.php', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': csrfToken,
+      },
+      body: JSON.stringify(subscription),
+    });
+  } catch (err) {
+    console.error('Push registration failed', err);
+  }
 }
 
 function setupOfferPicker() {

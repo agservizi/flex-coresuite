@@ -12,6 +12,12 @@ $pageTitle = $pageTitle ?? APP_NAME;
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <?php if (current_user()): ?>
+        <meta name="csrf-token" content="<?php echo csrf_token(); ?>">
+    <?php endif; ?>
+    <?php $vapidPublic = get_vapid_public_key(); if ($vapidPublic): ?>
+        <meta name="vapid-public-key" content="<?php echo htmlspecialchars($vapidPublic, ENT_QUOTES, 'UTF-8'); ?>">
+    <?php endif; ?>
     <title><?php echo sanitize($pageTitle); ?> · <?php echo APP_NAME; ?></title>
     <meta name="theme-color" content="#0d1b2a">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
