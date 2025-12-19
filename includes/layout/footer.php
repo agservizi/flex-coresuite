@@ -10,5 +10,12 @@
 </div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="<?php echo asset_url('/assets/js/app.js'); ?>"></script>
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('<?php echo asset_url('/public/sw.js'); ?>')
+    .then(registration => console.log('SW registered'))
+    .catch(error => console.log('SW registration failed'));
+}
+</script>
 </body>
 </html>

@@ -1,0 +1,16 @@
+{
+  "name": "Flex Coresuite",
+  "short_name": "Flex",
+  "description": "Sistema di gestione segnalazioni e opportunity",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0d6efd",
+  "icons": [
+    {
+      "src": "/public/logo-flex.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

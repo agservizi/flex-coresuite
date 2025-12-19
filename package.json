@@ -1,0 +1,22 @@
+{
+  "name": "flex-coresuite",
+  "version": "1.0.0",
+  "description": "Flex Coresuite PWA",
+  "main": "index.js",
+  "scripts": {
+    "start": "npx cap serve",
+    "build": "echo 'Build your web app here'",
+    "sync": "npx cap sync",
+    "add:ios": "npx cap add ios",
+    "add:android": "npx cap add android",
+    "open:ios": "npx cap open ios",
+    "open:android": "npx cap open android"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@capacitor/core": "^5.0.0",
+    "@capacitor/cli": "^5.0.0",
+    "@capacitor/ios": "^5.0.0",
+    "@capacitor/android": "^5.0.0"
+  }
+}

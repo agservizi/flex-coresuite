@@ -1,0 +1,8 @@
+{
+  "appId": "com.flex.coresuite",
+  "appName": "Flex Coresuite",
+  "webDir": ".",
+  "server": {
+    "url": "http://localhost:3000"
+  }
+}
