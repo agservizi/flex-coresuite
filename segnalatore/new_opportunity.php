@@ -17,35 +17,75 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $iban = sanitize($_POST['iban'] ?? '');
         $offerId = (int)($_POST['offer_id'] ?? 0);
 
-        if (!$first || !$last || !$offerId) {
-            $error = 'Compila tutti i campi obbligatori (nome, cognome, offerta). I documenti sono facoltativi per ora.';
+        if (!$first || !$last || !$offerId || empty($_FILES['docs']['name'][0])) {
+            $error = 'Compila tutti i campi obbligatori (nome, cognome, offerta, documenti).';
         } elseif (strlen($first) > 120 || strlen($last) > 120) {
             $error = 'Verifica lunghezza dei campi.';
         } else {
-            try {
-                $opp = add_opportunity([
-                    'first_name' => $first,
-                    'last_name' => $last,
-                    'offer_id' => $offerId,
-                    'commission' => 0,
-                    'notes' => 'Da segnalatore - IBAN: ' . $iban,
-                    'created_by' => (int)$user['id'],
-                ]);
-                $message = 'Opportunity creata (#' . $opp['opportunity_code'] . ')';
-
-                // Notifica admin
-                $admins = get_admins();
-                foreach ($admins as $adm) {
-                    create_notification((int)$adm['id'], 'Nuova segnalazione', $first . ' ' . $last, 'info');
+            // Gestisci upload documenti
+            $uploadedFiles = [];
+            if (!empty($_FILES['docs']['name'][0])) {
+                $uploadDir = __DIR__ . '/../uploads/segnalatore/';
+                if (!is_dir($uploadDir)) {
+                    mkdir($uploadDir, 0755, true);
                 }
-                $adminSubs = get_admin_push_subscriptions();
-                send_push_notification($adminSubs, 'Nuova segnalazione', $first . ' ' . $last);
+                foreach ($_FILES['docs']['tmp_name'] as $key => $tmpName) {
+                    if (!empty($tmpName)) {
+                        $originalName = $_FILES['docs']['name'][$key];
+                        $fileSize = $_FILES['docs']['size'][$key];
+                        $fileType = $_FILES['docs']['type'][$key];
+                        if ($fileSize > 5 * 1024 * 1024) { // 5MB max
+                            $error = 'File troppo grande (max 5MB).';
+                            break;
+                        }
+                        $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf'];
+                        if (!in_array($fileType, $allowedTypes)) {
+                            $error = 'Tipo file non supportato.';
+                            break;
+                        }
+                        $fileName = uniqid('doc_', true) . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $originalName);
+                        $filePath = $uploadDir . $fileName;
+                        if (move_uploaded_file($tmpName, $filePath)) {
+                            $uploadedFiles[] = '/uploads/segnalatore/' . $fileName;
+                        } else {
+                            $error = 'Errore nel caricamento del file.';
+                            break;
+                        }
+                    }
+                }
+            }
 
-                // Redirect alla pagina segnalazioni
-                header("Location: /segnalatore/segnalazioni.php");
-                exit;
-            } catch (Throwable $e) {
-                $error = 'Errore: ' . $e->getMessage();
+            if (!$error) {
+                $notes = 'Da segnalatore - IBAN: ' . $iban;
+                if (!empty($uploadedFiles)) {
+                    $notes .= ' - Documenti: ' . implode(', ', $uploadedFiles);
+                }
+
+                try {
+                    $opp = add_opportunity([
+                        'first_name' => $first,
+                        'last_name' => $last,
+                        'offer_id' => $offerId,
+                        'commission' => 0,
+                        'notes' => $notes,
+                        'created_by' => (int)$user['id'],
+                    ]);
+                    $message = 'Opportunity creata (#' . $opp['opportunity_code'] . ')';
+
+                    // Notifica admin
+                    $admins = get_admins();
+                    foreach ($admins as $adm) {
+                        create_notification((int)$adm['id'], 'Nuova segnalazione', $first . ' ' . $last, 'info');
+                    }
+                    $adminSubs = get_admin_push_subscriptions();
+                    send_push_notification($adminSubs, 'Nuova segnalazione', $first . ' ' . $last);
+
+                    // Redirect alla pagina segnalazioni
+                    header("Location: /segnalatore/segnalazioni.php");
+                    exit;
+                } catch (Throwable $e) {
+                    $error = 'Errore: ' . $e->getMessage();
+                }
             }
         }
     }
@@ -112,7 +152,7 @@ $name = $parts[0] . ' ' . (isset($parts[1]) ? substr($parts[1], 0, 1) . '.' : ''
 
         <div class="mb-3">
             <label class="form-label fw-semibold">Documenti ammessi (CIE, Patente IT, Passaporto, Tessera sanitaria) - foto o PDF</label>
-            <input type="file" class="form-control" name="docs[]" id="docs" accept="image/*,application/pdf" multiple>
+            <input type="file" class="form-control" name="docs[]" id="docs" accept="image/*,application/pdf" multiple data-doc-preview required>
             <div class="small text-muted mt-1">Max 5MB ciascuno · puoi usare la fotocamera del telefono per scattare le foto</div>
             <div class="doc-preview mt-2" data-doc-preview-list></div>
         </div>
