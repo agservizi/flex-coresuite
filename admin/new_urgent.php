@@ -5,7 +5,6 @@ require_once __DIR__ . '/../includes/helpers.php';
 
 $users = get_users();
 $gestori = get_gestori();
-$offers = get_offers();
 $message = null;
 $error = null;
 
@@ -20,15 +19,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $city = sanitize($_POST['city'] ?? '');
         $managerId = (int)($_POST['manager_id'] ?? 0);
         $installerId = (int)($_POST['installer_id'] ?? 0);
-        $offerId = (int)($_POST['offer_id'] ?? 0);
 
-        if (!$first || !$last || !$phone || !$address || !$city || !$managerId || !$installerId || !$offerId) {
+        if (!$first || !$last || !$phone || !$address || !$city || !$managerId || !$installerId) {
             $error = 'Compila tutti i campi obbligatori.';
         } else {
             try {
-                $offer = array_find($offers, fn($o) => $o['id'] == $offerId);
-                $commission = $offer ? (float)$offer['commission'] : 0.00;
-
                 $opp = add_opportunity([
                     'first_name' => $first,
                     'last_name' => $last,
@@ -36,8 +31,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'address' => $address,
                     'city' => $city,
                     'notes' => 'Urgente fibra',
-                    'offer_id' => $offerId,
-                    'commission' => $commission,
+                    'offer_id' => 1, // Assume fibra 100
+                    'commission' => 35.00, // Assume standard
                     'installer_id' => $installerId,
                     'manager_id' => $managerId,
                 ]);
@@ -130,16 +125,6 @@ include __DIR__ . '/../includes/layout/header.php';
             <label class="form-label">Città *</label>
             <input type="text" name="city" class="form-control" required>
         </div>
-        <div class="col-12 position-relative">
-            <select class="visually-hidden position-absolute" style="opacity:0; height:0; width:0; pointer-events:none;" id="offer_id" name="offer_id" data-offer-select data-native-select required>
-                <option value="">Seleziona offerta</option>
-                <?php foreach ($offers as $offer): ?>
-                    <option value="<?php echo $offer['id']; ?>"><?php echo sanitize($offer['name']); ?></option>
-                <?php endforeach; ?>
-            </select>
-            <input type="text" class="form-control offer-picker-trigger" id="offer_display" placeholder="Tipologia prodotto" readonly data-offer-picker-trigger data-offer-label value="Seleziona offerta" required>
-            <label for="offer_display">Tipologia prodotto *</label>
-        </div>
         <div class="col-md-6 position-relative">
             <select class="visually-hidden position-absolute" style="opacity:0; height:0; width:0; pointer-events:none;" id="manager_id" name="manager_id" data-manager-select data-native-select required>
                 <option value="">Seleziona gestore</option>
@@ -165,29 +150,6 @@ include __DIR__ . '/../includes/layout/header.php';
         </div>
     </div>
 </form>
-<div class="sheet-backdrop" data-offer-picker-backdrop></div>
-<div class="sheet" data-offer-picker>
-    <div class="sheet-handle"></div>
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <div class="fw-bold">Scegli tipologia prodotto</div>
-        <button type="button" class="btn btn-sm btn-outline-secondary" data-offer-picker-close>Chiudi</button>
-    </div>
-    <div class="list-group">
-        <?php foreach ($offers as $offer): ?>
-            <button type="button"
-                    class="list-group-item list-group-item-action d-flex justify-content-between align-items-center offer-option"
-                    data-offer-option
-                    data-id="<?php echo $offer['id']; ?>"
-                    data-label="<?php echo sanitize($offer['name']); ?>">
-                <div>
-                    <div class="fw-semibold"><?php echo sanitize($offer['name']); ?></div>
-                    <div class="small text-muted"><?php echo sanitize($offer['manager_name']); ?></div>
-                </div>
-                <div class="fw-bold text-primary">€ <?php echo number_format($offer['commission'], 2, ',', '.'); ?></div>
-            </button>
-        <?php endforeach; ?>
-    </div>
-</div>
 <div class="sheet-backdrop" data-manager-picker-backdrop></div>
 <div class="sheet" data-manager-picker>
     <div class="sheet-handle"></div>

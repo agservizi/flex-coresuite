@@ -313,7 +313,9 @@ body.no-scroll {
     .toast-item { width: 100%; }
 }
 
-.offer-picker-trigger {
+.offer-picker-trigger,
+.manager-picker-trigger,
+.installer-picker-trigger {
     cursor: pointer;
 }
 
@@ -321,13 +323,17 @@ body.no-scroll {
     cursor: pointer;
 }
 
-.offer-option {
+.offer-option,
+.manager-option,
+.installer-option {
     background: transparent;
     color: var(--text-body);
     border-color: rgba(255,255,255,0.08);
 }
 
-.offer-option:hover {
+.offer-option:hover,
+.manager-option:hover,
+.installer-option:hover {
     background: rgba(255,255,255,0.04);
 }
 
