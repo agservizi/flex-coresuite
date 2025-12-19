@@ -129,7 +129,7 @@ include __DIR__ . '/../includes/layout/header.php';
                 <?php endif; ?>
             </div>
             <div class="text-end">
-                <div class="fw-bold">€ <?php echo number_format($op['commission'], 2, ',', '.'); ?></div>
+                <div class="fw-bold"><?php echo $op['commission'] == 0 ? 'Urgente' : '€ ' . number_format($op['commission'], 2, ',', '.'); ?></div>
                 <div class="text-muted small"><?php echo sanitize($op['created_at']); ?></div>
             </div>
         </div>

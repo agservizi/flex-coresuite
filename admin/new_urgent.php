@@ -32,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'city' => $city,
                     'notes' => 'Urgente fibra',
                     'offer_id' => 0, // No offer for urgent
-                    'commission' => 35.00, // Assume standard
+                    'commission' => 0.00, // No commission for urgent
                     'installer_id' => $installerId,
                     'manager_id' => $managerId,
                 ]);
