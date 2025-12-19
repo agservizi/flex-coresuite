@@ -130,7 +130,7 @@ include __DIR__ . '/../includes/layout/header.php';
             </div>
             <div class="text-end">
                 <div class="fw-bold"><?php echo $op['product_type'] == 0 ? 'Urgente' : '€ ' . number_format($op['commission'], 2, ',', '.'); ?></div>
-                <div class="text-muted small"><?php echo sanitize($op['created_at']); ?></div>
+                <div class="text-muted small"><?php echo strftime('%d %B %Y', strtotime($op['created_at'])); ?></div>
             </div>
         </div>
         <?php if ($op['product_type'] > 0): ?>
