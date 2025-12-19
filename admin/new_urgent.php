@@ -115,7 +115,7 @@ include __DIR__ . '/../includes/layout/header.php';
                 <?php endforeach; ?>
             </select>
         </div>
-        <div class="col-12">
+        <div class="col-12 d-flex justify-content-end">
             <button type="submit" class="btn btn-primary">Invia segnalazione urgente</button>
         </div>
     </div>
