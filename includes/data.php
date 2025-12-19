@@ -237,7 +237,7 @@ function get_gestori(): array
 function get_opportunities(array $filters = []): array
 {
     seed_data();
-    $sql = 'SELECT o.id, o.opportunity_code, o.first_name, o.last_name, o.notes, o.status, o.installer_id, o.created_by, o.month, o.created_at, o.commission,
+    $sql = 'SELECT o.id, o.opportunity_code, o.first_name, o.last_name, o.notes, o.status, o.installer_id, o.created_by, o.phone, o.address, o.city, o.month, o.created_at, o.commission,
                    off.id AS product_type, off.name AS offer_name, g.name AS manager_name,
                    u.name AS installer_name,
                    cu.name AS segnalatore_name
@@ -361,8 +361,8 @@ function add_opportunity(array $data): array
 
     $now = new DateTimeImmutable();
     $code = generate_opportunity_code($pdo);
-    $pdo->prepare('INSERT INTO opportunities (opportunity_code, first_name, last_name, notes, offer_id, manager_id, commission, status, installer_id, created_by, month, created_at)
-                   VALUES (:opportunity_code, :first_name, :last_name, :notes, :offer_id, :manager_id, :commission, :status, :installer_id, :created_by, :month, :created_at)')
+    $pdo->prepare('INSERT INTO opportunities (opportunity_code, first_name, last_name, notes, offer_id, manager_id, commission, phone, address, city, status, installer_id, created_by, month, created_at)
+                   VALUES (:opportunity_code, :first_name, :last_name, :notes, :offer_id, :manager_id, :commission, :phone, :address, :city, :status, :installer_id, :created_by, :month, :created_at)')
         ->execute([
             'opportunity_code' => $code,
             'first_name' => $data['first_name'],
@@ -371,6 +371,9 @@ function add_opportunity(array $data): array
             'offer_id' => $offerId,
             'manager_id' => $offer['manager_id'],
             'commission' => $data['commission'] ?? $offer['commission'],
+            'phone' => $data['phone'] ?? null,
+            'address' => $data['address'] ?? null,
+            'city' => $data['city'] ?? null,
             'status' => STATUS_PENDING,
             'installer_id' => $installerId,
             'created_by' => $createdBy,
