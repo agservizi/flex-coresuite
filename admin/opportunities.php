@@ -115,6 +115,18 @@ include __DIR__ . '/../includes/layout/header.php';
                 <?php if (!empty($op['segnalatore_name'])): ?>
                     <div class="small text-muted">Segnalatore: <?php echo sanitize($op['segnalatore_name']); ?></div>
                 <?php endif; ?>
+                <?php if (!empty($op['notes'])): ?>
+                    <div class="small text-muted">Note: <?php echo sanitize($op['notes']); ?></div>
+                <?php endif; ?>
+                <?php if (!empty($op['phone'])): ?>
+                    <div class="small text-muted">Cellulare: <?php echo sanitize($op['phone']); ?></div>
+                <?php endif; ?>
+                <?php if (!empty($op['address'])): ?>
+                    <div class="small text-muted">Indirizzo: <?php echo sanitize($op['address']); ?></div>
+                <?php endif; ?>
+                <?php if (!empty($op['city'])): ?>
+                    <div class="small text-muted">Città: <?php echo sanitize($op['city']); ?></div>
+                <?php endif; ?>
             </div>
             <div class="text-end">
                 <div class="fw-bold">€ <?php echo number_format($op['commission'], 2, ',', '.'); ?></div>

@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $offerId = (int)($_POST['offer_id'] ?? 0);
         $notes = sanitize($_POST['notes'] ?? '');
 
-        if (!$first || !$last || !$offerId) {
+        if (!$first || !$last || !$offerId || !$notes) {
             $error = 'Compila tutti i campi obbligatori.';
         } elseif (strlen($first) > 120 || strlen($last) > 120 || strlen($notes) > 500) {
             $error = 'Verifica lunghezza dei campi.';
@@ -86,7 +86,7 @@ include __DIR__ . '/../includes/layout/header.php';
             <label for="last_name">Cognome</label>
         </div>
         <div class="form-floating mb-3 position-relative">
-            <select class="visually-hidden position-absolute" style="opacity:0; height:0; width:0; pointer-events:none;" id="offer_id" name="offer_id" data-offer-select data-native-select>
+            <select class="visually-hidden position-absolute" style="opacity:0; height:0; width:0; pointer-events:none;" id="offer_id" name="offer_id" data-offer-select data-native-select required>
                 <option value="">Seleziona offerta</option>
                 <?php foreach ($offers as $offer): ?>
                     <option value="<?php echo $offer['id']; ?>"><?php echo sanitize($offer['name'] . ' · € ' . number_format($offer['commission'], 2, ',', '.')); ?></option>
@@ -96,7 +96,7 @@ include __DIR__ . '/../includes/layout/header.php';
             <label for="offer_display">Tipologia prodotto</label>
         </div>
         <div class="form-floating mb-3">
-            <textarea class="form-control" placeholder="Note" id="notes" name="notes" style="height:120px;"></textarea>
+            <textarea class="form-control" placeholder="Note" id="notes" name="notes" style="height:120px;" required></textarea>
             <label for="notes">Campo descrittivo</label>
         </div>
         <button class="btn btn-primary w-100 btn-pill">Salva opportunity</button>

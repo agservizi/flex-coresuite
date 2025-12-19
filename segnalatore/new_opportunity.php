@@ -14,9 +14,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $first = sanitize($_POST['first_name'] ?? '');
         $last = sanitize($_POST['last_name'] ?? '');
+        $iban = sanitize($_POST['iban'] ?? '');
         $offerId = (int)($_POST['offer_id'] ?? 0);
 
-        if (!$first || !$last || !$offerId) {
+        if (!$first || !$last || !$iban || !$offerId || empty($_FILES['docs']['name'][0])) {
             $error = 'Compila tutti i campi obbligatori.';
         } elseif (strlen($first) > 120 || strlen($last) > 120) {
             $error = 'Verifica lunghezza dei campi.';
@@ -27,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'last_name' => $last,
                     'offer_id' => $offerId,
                     'commission' => 0,
-                    'notes' => 'Da segnalatore',
+                    'notes' => 'Da segnalatore - IBAN: ' . $iban,
                     'created_by' => (int)$user['id'],
                 ]);
                 $message = 'Opportunity creata (#' . $opp['opportunity_code'] . ')';
@@ -99,7 +100,7 @@ $name = $parts[0] . ' ' . (isset($parts[1]) ? substr($parts[1], 0, 1) . '.' : ''
             <label for="last_name">Cognome</label>
         </div>
         <div class="form-floating mb-3 position-relative">
-            <select class="visually-hidden position-absolute" style="opacity:0; height:0; width:0; pointer-events:none;" id="offer_id" name="offer_id" data-offer-select data-native-select>
+            <select class="visually-hidden position-absolute" style="opacity:0; height:0; width:0; pointer-events:none;" id="offer_id" name="offer_id" data-offer-select data-native-select required>
                 <option value="">Seleziona offerta</option>
                 <?php foreach ($offers as $offer): ?>
                     <option value="<?php echo $offer['id']; ?>"><?php echo sanitize($offer['name']); ?></option>
@@ -111,9 +112,14 @@ $name = $parts[0] . ' ' . (isset($parts[1]) ? substr($parts[1], 0, 1) . '.' : ''
 
         <div class="mb-3">
             <label class="form-label fw-semibold">Documenti ammessi (CIE, Patente IT, Passaporto, Tessera sanitaria) - foto o PDF</label>
-            <input type="file" class="form-control" name="docs[]" id="docs" accept="image/*,application/pdf" multiple data-doc-preview>
+            <input type="file" class="form-control" name="docs[]" id="docs" accept="image/*,application/pdf" multiple data-doc-preview required>
             <div class="small text-muted mt-1">Max 5MB ciascuno · puoi usare la fotocamera del telefono per scattare le foto</div>
             <div class="doc-preview mt-2" data-doc-preview-list></div>
+        </div>
+
+        <div class="form-floating mb-3">
+            <input type="text" class="form-control" id="iban" name="iban" placeholder="IBAN" required>
+            <label for="iban">IBAN</label>
         </div>
 
         <div class="d-grid mt-3">
