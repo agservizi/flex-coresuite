@@ -57,27 +57,27 @@ include __DIR__ . '/../includes/layout/header.php';
             </div>
         </div>
         <div class="col-6">
-            <div class="stat-chip">
-                <div class="bite">Provvigioni potenziali</div>
-                <div class="h4 fw-bold mb-0">€ <?php echo number_format($summary['commission_total'], 2, ',', '.'); ?></div>
-            </div>
-        </div>
-        <div class="col-4">
             <div class="stat-chip text-ok">
-                <div class="bite">Approvate</div>
+                <div class="bite">OK</div>
                 <div class="h4 fw-bold mb-0"><?php echo $summary['ok']; ?></div>
             </div>
         </div>
-        <div class="col-4">
+        <div class="col-6">
             <div class="stat-chip text-warning">
                 <div class="bite">In attesa</div>
                 <div class="h4 fw-bold mb-0"><?php echo $summary['pending']; ?></div>
             </div>
         </div>
-        <div class="col-4">
+        <div class="col-6">
             <div class="stat-chip text-danger-soft">
-                <div class="bite">Rifiutate</div>
+                <div class="bite">KO</div>
                 <div class="h4 fw-bold mb-0"><?php echo $summary['ko']; ?></div>
+            </div>
+        </div>
+        <div class="col-12">
+            <div class="stat-chip">
+                <div class="bite">Provvigioni maturate</div>
+                <div class="h4 fw-bold mb-0">€ <?php echo number_format($summary['commission_total'], 2, ',', '.'); ?></div>
             </div>
         </div>
     </div>
