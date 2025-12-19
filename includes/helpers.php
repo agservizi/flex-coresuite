@@ -156,44 +156,83 @@ function send_push_notification(array $subscriptions, string $title, string $bod
     if (empty($subscriptions)) {
         return;
     }
-    $publicKey = get_vapid_public_key();
-    $privateKey = get_vapid_private_key();
-    if (!$publicKey || !$privateKey) {
-        return;
+
+    $webSubs = array_filter($subscriptions, fn($sub) => !empty($sub['endpoint']));
+    $nativeSubs = array_filter($subscriptions, fn($sub) => !empty($sub['token']));
+
+    // Send web push
+    if (!empty($webSubs)) {
+        $publicKey = get_vapid_public_key();
+        $privateKey = get_vapid_private_key();
+        if ($publicKey && $privateKey) {
+            $subject = getenv('VAPID_SUBJECT') ?: ('mailto:' . (getenv('RESEND_FROM') ?: 'no-reply@example.com'));
+
+            foreach ($webSubs as $sub) {
+                $endpoint = $sub['endpoint'] ?? '';
+                if (!$endpoint) continue;
+                $aud = parse_url($endpoint);
+                if (empty($aud['scheme']) || empty($aud['host'])) continue;
+                $audience = $aud['scheme'] . '://' . $aud['host'] . (!empty($aud['port']) ? ':' . $aud['port'] : '');
+
+                try {
+                    $jwt = build_vapid_jwt($audience, $subject, $privateKey);
+                    $headers = [
+                        'TTL: 60',
+                        'Authorization: WebPush ' . $jwt,
+                        'Crypto-Key: p256ecdsa=' . $publicKey,
+                    ];
+
+                    $ch = curl_init($endpoint);
+                    curl_setopt_array($ch, [
+                        CURLOPT_POST => true,
+                        CURLOPT_HTTPHEADER => $headers,
+                        CURLOPT_RETURNTRANSFER => true,
+                        CURLOPT_TIMEOUT => 10,
+                        CURLOPT_POSTFIELDS => json_encode(['title' => $title, 'body' => $body]),
+                    ]);
+                    curl_exec($ch);
+                    curl_close($ch);
+                } catch (Throwable $e) {
+                    // ignora errori push per non bloccare il flusso principale
+                }
+            }
+        }
     }
-    $subject = getenv('VAPID_SUBJECT') ?: ('mailto:' . (getenv('RESEND_FROM') ?: 'no-reply@example.com'));
 
-    foreach ($subscriptions as $sub) {
-        $endpoint = $sub['endpoint'] ?? '';
-        if (!$endpoint) {
-            continue;
-        }
-        $aud = parse_url($endpoint);
-        if (empty($aud['scheme']) || empty($aud['host'])) {
-            continue;
-        }
-        $audience = $aud['scheme'] . '://' . $aud['host'] . (!empty($aud['port']) ? ':' . $aud['port'] : '');
+    // Send native push via FCM
+    if (!empty($nativeSubs)) {
+        $fcmKey = getenv('FCM_SERVER_KEY');
+        if ($fcmKey) {
+            foreach ($nativeSubs as $sub) {
+                $token = $sub['token'] ?? '';
+                if (!$token) continue;
 
-        try {
-            $jwt = build_vapid_jwt($audience, $subject, $privateKey);
-            $headers = [
-                'TTL: 60',
-                'Authorization: WebPush ' . $jwt,
-                'Crypto-Key: p256ecdsa=' . $publicKey,
-            ];
+                try {
+                    $payload = [
+                        'to' => $token,
+                        'notification' => [
+                            'title' => $title,
+                            'body' => $body,
+                        ],
+                    ];
 
-            $ch = curl_init($endpoint);
-            curl_setopt_array($ch, [
-                CURLOPT_POST => true,
-                CURLOPT_HTTPHEADER => $headers,
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_TIMEOUT => 10,
-                CURLOPT_POSTFIELDS => '',
-            ]);
-            curl_exec($ch);
-            curl_close($ch);
-        } catch (Throwable $e) {
-            // ignora errori push per non bloccare il flusso principale
+                    $ch = curl_init('https://fcm.googleapis.com/fcm/send');
+                    curl_setopt_array($ch, [
+                        CURLOPT_POST => true,
+                        CURLOPT_HTTPHEADER => [
+                            'Authorization: key=' . $fcmKey,
+                            'Content-Type: application/json',
+                        ],
+                        CURLOPT_RETURNTRANSFER => true,
+                        CURLOPT_TIMEOUT => 10,
+                        CURLOPT_POSTFIELDS => json_encode($payload),
+                    ]);
+                    curl_exec($ch);
+                    curl_close($ch);
+                } catch (Throwable $e) {
+                    // ignora errori push
+                }
+            }
         }
     }
 }

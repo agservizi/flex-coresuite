@@ -191,41 +191,77 @@ function urlBase64ToUint8Array(base64String) {
 }
 
 async function registerPush() {
-  if (!('serviceWorker' in navigator) || !('PushManager' in window) || Notification.permission === 'denied') {
-    return;
-  }
+  if (window.Capacitor && Capacitor.isNativePlatform()) {
+    // Use Capacitor push notifications
+    const { PushNotifications } = Capacitor.Plugins;
+    PushNotifications.requestPermissions().then(result => {
+      if (result.receive === 'granted') {
+        PushNotifications.register();
+      }
+    });
 
-  const vapidMeta = document.querySelector('meta[name="vapid-public-key"]');
-  const csrfMeta = document.querySelector('meta[name="csrf-token"]');
-  const assetVersionMeta = document.querySelector('meta[name="asset-version"]');
-  const publicKey = vapidMeta ? vapidMeta.content : '';
-  const csrfToken = csrfMeta ? csrfMeta.content : '';
-  const swVersion = assetVersionMeta ? `?v=${encodeURIComponent(assetVersionMeta.content)}` : '';
-  if (!publicKey || !csrfToken) return;
+    PushNotifications.addListener('registration', token => {
+      console.log('Push registration success, token: ' + token.value);
+      // Send token to server
+      const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+      const csrfToken = csrfMeta ? csrfMeta.content : '';
+      if (csrfToken) {
+        fetch('/push/subscribe.php', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': csrfToken,
+          },
+          body: JSON.stringify({ token: token.value, platform: Capacitor.getPlatform() }),
+        });
+      }
+    });
 
-  try {
-    const permission = await Notification.requestPermission();
-    if (permission !== 'granted') return;
+    PushNotifications.addListener('pushNotificationReceived', notification => {
+      console.log('Push received: ', notification);
+    });
 
-    const registration = await navigator.serviceWorker.register(`/public/sw.js${swVersion}`);
-    let subscription = await registration.pushManager.getSubscription();
-    if (!subscription) {
-      subscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(publicKey),
-      });
+    PushNotifications.addListener('pushNotificationActionPerformed', notification => {
+      console.log('Push action performed: ', notification);
+    });
+  } else {
+    // Fallback to web push
+    if (!('serviceWorker' in navigator) || !('PushManager' in window) || Notification.permission === 'denied') {
+      return;
     }
 
-    await fetch('/push/subscribe.php', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-Token': csrfToken,
-      },
-      body: JSON.stringify(subscription),
-    });
-  } catch (err) {
-    console.error('Push registration failed', err);
+    const vapidMeta = document.querySelector('meta[name="vapid-public-key"]');
+    const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+    const assetVersionMeta = document.querySelector('meta[name="asset-version"]');
+    const publicKey = vapidMeta ? vapidMeta.content : '';
+    const csrfToken = csrfMeta ? csrfMeta.content : '';
+    const swVersion = assetVersionMeta ? `?v=${encodeURIComponent(assetVersionMeta.content)}` : '';
+    if (!publicKey || !csrfToken) return;
+
+    try {
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') return;
+
+      const registration = await navigator.serviceWorker.register(`/public/sw.js${swVersion}`);
+      let subscription = await registration.pushManager.getSubscription();
+      if (!subscription) {
+        subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(publicKey),
+        });
+      }
+
+      await fetch('/push/subscribe.php', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken,
+        },
+        body: JSON.stringify(subscription),
+      });
+    } catch (err) {
+      console.error('Push registration failed', err);
+    }
   }
 }
 
