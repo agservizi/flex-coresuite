@@ -6,16 +6,16 @@ require_once __DIR__ . '/../includes/helpers.php';
 $user = current_user();
 $month = sanitize($_GET['month'] ?? date('n'));
 
-$segnalazioni = list_segnalazioni([
+$opportunities = filter_opportunities([
     'created_by' => (int)$user['id'],
     'month' => $month,
 ]);
 $summary = [
-    'total' => count($segnalazioni),
-    'pending' => count(array_filter($segnalazioni, fn($s) => $s['status'] === 'In attesa')),
-    'ok' => count(array_filter($segnalazioni, fn($s) => $s['status'] === 'Accettata')),
-    'ko' => count(array_filter($segnalazioni, fn($s) => $s['status'] === 'Rifiutata')),
-    'commission_total' => array_sum(array_map(fn($s) => $s['status'] === 'Accettata' ? (float)$s['commission'] : 0, $segnalazioni)),
+    'total' => count($opportunities),
+    'pending' => count(array_filter($opportunities, fn($o) => $o['status'] === 'In attesa')),
+    'ok' => count(array_filter($opportunities, fn($o) => $o['status'] === 'OK')),
+    'ko' => count(array_filter($opportunities, fn($o) => $o['status'] === 'KO')),
+    'commission_total' => array_sum(array_map(fn($o) => (float)$o['commission'], $opportunities)),
 ];
 
 $pageTitle = 'Report mensile';
@@ -84,23 +84,23 @@ include __DIR__ . '/../includes/layout/header.php';
 </div>
 
 <h2 class="h6 fw-bold">Dettagli</h2>
-<?php foreach ($segnalazioni as $seg): ?>
+<?php foreach ($opportunities as $opp): ?>
     <div class="card-soft p-3 mb-2">
         <div class="d-flex justify-content-between align-items-center">
             <div>
-                <div class="fw-bold"><?php echo sanitize($seg['first_name'] . ' ' . $seg['last_name']); ?></div>
-                <div class="text-muted small"><?php echo sanitize($seg['offer_name']); ?> · <?php echo sanitize($seg['manager_name']); ?></div>
-                <div class="small text-muted">Segnalatore: <?php echo sanitize($user['name']); ?></div>
+                <div class="fw-bold"><?php echo sanitize($opp['first_name'] . ' ' . $opp['last_name']); ?></div>
+                <div class="text-muted small"><?php echo sanitize($opp['offer_name']); ?> · <?php echo sanitize($opp['manager_name']); ?></div>
+                <div class="small text-muted">Codice: <?php echo sanitize($opp['opportunity_code']); ?></div>
             </div>
             <div class="text-end">
-                <span class="badge bg-secondary"><?php echo sanitize($seg['status']); ?></span>
-                <div class="fw-bold">€ <?php echo number_format((float)$seg['commission'], 2, ',', '.'); ?></div>
+                <span class="badge bg-secondary"><?php echo sanitize($opp['status']); ?></span>
+                <div class="fw-bold">€ <?php echo number_format((float)$opp['commission'], 2, ',', '.'); ?></div>
             </div>
         </div>
     </div>
 <?php endforeach; ?>
 
-<?php if (empty($segnalazioni)): ?>
-    <div class="alert alert-info">Nessuna segnalazione trovata.</div>
+<?php if (empty($opportunities)): ?>
+    <div class="alert alert-info">Nessuna opportunity trovata.</div>
 <?php endif; ?>
 <?php include __DIR__ . '/../includes/layout/footer.php'; ?>

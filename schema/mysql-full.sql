@@ -44,12 +44,14 @@ CREATE TABLE IF NOT EXISTS opportunities (
     manager_id INT UNSIGNED NOT NULL,
     commission DECIMAL(10,2) NOT NULL DEFAULT 0,
     status ENUM('In attesa','OK','KO') NOT NULL DEFAULT 'In attesa',
-    installer_id INT UNSIGNED NOT NULL,
+    installer_id INT UNSIGNED NULL,
+    created_by INT UNSIGNED NULL,
     month TINYINT UNSIGNED NOT NULL,
     created_at DATE NOT NULL,
     CONSTRAINT fk_opportunities_offer FOREIGN KEY (offer_id) REFERENCES offers(id),
     CONSTRAINT fk_opportunities_manager FOREIGN KEY (manager_id) REFERENCES gestori(id),
-    CONSTRAINT fk_opportunities_installer FOREIGN KEY (installer_id) REFERENCES users(id)
+    CONSTRAINT fk_opportunities_installer FOREIGN KEY (installer_id) REFERENCES users(id),
+    CONSTRAINT fk_opportunities_created_by FOREIGN KEY (created_by) REFERENCES users(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 3) Seed demo data (password hashes: admin123 / installer123)
@@ -74,7 +76,7 @@ ON DUPLICATE KEY UPDATE name = VALUES(name);
 SET @curr_month = MONTH(CURDATE());
 SET @prev_month = CASE WHEN @curr_month > 1 THEN @curr_month - 1 ELSE 12 END;
 
-INSERT INTO opportunities (first_name,last_name,notes,offer_id,manager_id,commission,status,installer_id,month,created_at) VALUES
-('Maria','Rossi','Nuova attivazione fibra',1,1,35.00,'In attesa',2,@curr_month,CURDATE()),
-('Giulia','Bianchi','Upgrade cliente',2,1,55.00,'OK',2,@prev_month,DATE_SUB(CURDATE(), INTERVAL 15 DAY)),
-('Carlo','Verdi','Linea non attivabile',3,2,45.00,'KO',2,@prev_month,DATE_SUB(CURDATE(), INTERVAL 25 DAY));
+INSERT INTO opportunities (first_name,last_name,notes,offer_id,manager_id,commission,status,installer_id,created_by,month,created_at) VALUES
+('Maria','Rossi','Nuova attivazione fibra',1,1,35.00,'In attesa',2,NULL,@curr_month,CURDATE()),
+('Giulia','Bianchi','Upgrade cliente',2,1,55.00,'OK',2,NULL,@prev_month,DATE_SUB(CURDATE(), INTERVAL 15 DAY)),
+('Carlo','Verdi','Linea non attivabile',3,2,45.00,'KO',2,NULL,@prev_month,DATE_SUB(CURDATE(), INTERVAL 25 DAY));

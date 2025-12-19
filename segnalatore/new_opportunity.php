@@ -22,12 +22,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = 'Verifica lunghezza dei campi.';
         } else {
             try {
-                $segId = create_segnalazione([
+                $opp = add_opportunity([
                     'first_name' => $first,
                     'last_name' => $last,
                     'offer_id' => $offerId,
-                ], $_FILES, (int)$user['id']);
-                $message = 'Segnalazione inviata (#' . $segId . ')';
+                    'commission' => 0,
+                    'notes' => 'Da segnalatore',
+                    'created_by' => (int)$user['id'],
+                ]);
+                $message = 'Opportunity creata (#' . $opp['opportunity_code'] . ')';
 
                 // Notifica admin
                 $admins = get_admins();

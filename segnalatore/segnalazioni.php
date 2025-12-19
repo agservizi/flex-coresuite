@@ -10,12 +10,12 @@ $page = max(1, (int)($_GET['page'] ?? 1));
 $perPage = 10;
 $filters = ['created_by' => (int)$user['id']];
 if (!empty($search)) $filters['search'] = $search;
-$total = count_segnalazioni($filters);
+$total = count(filter_opportunities($filters));
 $totalPages = ceil($total / $perPage);
 $page = min($page, $totalPages ?: 1);
 $filters['limit'] = $perPage;
 $filters['offset'] = ($page - 1) * $perPage;
-$segnalazioni = list_segnalazioni($filters);
+$opportunities = filter_opportunities($filters);
 $pageTitle = 'Le mie segnalazioni';
 $bottomNav = '
     <a class="nav-pill" href="/segnalatore/dashboard.php"><span class="dot"></span><span>Home</span></a>
@@ -47,28 +47,21 @@ $name = $parts[0] . ' ' . (isset($parts[1]) ? substr($parts[1], 0, 1) . '.' : ''
     </div>
 </form>
 
-<?php if (empty($segnalazioni)): ?>
-    <div class="alert alert-info">Nessuna segnalazione trovata.</div>
+<?php if (empty($opportunities)): ?>
+    <div class="alert alert-info">Nessuna opportunity trovata.</div>
 <?php endif; ?>
 
-<?php foreach ($segnalazioni as $seg): ?>
+<?php foreach ($opportunities as $opp): ?>
     <div class="card-soft p-3 mb-2">
         <div class="d-flex justify-content-between align-items-start">
             <div>
-                <div class="fw-bold"><?php echo sanitize($seg['first_name'] . ' ' . $seg['last_name']); ?></div>
-                <div class="text-muted small"><?php echo sanitize($seg['offer_name']); ?> · <?php echo sanitize($seg['manager_name']); ?></div>
-                <div class="small text-muted">Stato: <?php echo sanitize($seg['status']); ?></div>
-                <div class="small text-muted">Doc: <?php echo (int)$seg['doc_count']; ?></div>
-                <?php if ($seg['doc_count'] > 0): ?>
-                    <div class="d-flex flex-wrap gap-1 mt-1">
-                        <?php foreach (get_segnalazione_docs($seg['id']) as $doc): ?>
-                            <a class="badge bg-light text-dark" href="/download.php?id=<?php echo (int)$doc['id']; ?>" target="_blank" rel="noopener">Scarica</a>
-                        <?php endforeach; ?>
-                    </div>
-                <?php endif; ?>
+                <div class="fw-bold"><?php echo sanitize($opp['first_name'] . ' ' . $opp['last_name']); ?></div>
+                <div class="text-muted small"><?php echo sanitize($opp['offer_name']); ?> · <?php echo sanitize($opp['manager_name']); ?></div>
+                <div class="small text-muted">Stato: <?php echo sanitize($opp['status']); ?></div>
+                <div class="small text-muted">Codice: <?php echo sanitize($opp['opportunity_code']); ?></div>
             </div>
             <div class="text-end">
-                <div class="text-muted small"><?php echo sanitize($seg['created_at']); ?></div>
+                <div class="text-muted small"><?php echo sanitize($opp['created_at']); ?></div>
             </div>
         </div>
     </div>

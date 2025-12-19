@@ -237,13 +237,15 @@ function get_gestori(): array
 function get_opportunities(array $filters = []): array
 {
     seed_data();
-    $sql = 'SELECT o.id, o.opportunity_code, o.first_name, o.last_name, o.notes, o.status, o.installer_id, o.month, o.created_at, o.commission,
+    $sql = 'SELECT o.id, o.opportunity_code, o.first_name, o.last_name, o.notes, o.status, o.installer_id, o.created_by, o.month, o.created_at, o.commission,
                    off.id AS product_type, off.name AS offer_name, g.name AS manager_name,
-                   u.name AS installer_name
+                   u.name AS installer_name,
+                   cu.name AS segnalatore_name
             FROM opportunities o
             JOIN offers off ON o.offer_id = off.id
             JOIN gestori g ON o.manager_id = g.id
             LEFT JOIN users u ON o.installer_id = u.id
+            LEFT JOIN users cu ON o.created_by = cu.id
             WHERE 1=1';
     $params = [];
 
@@ -346,6 +348,7 @@ function add_opportunity(array $data): array
 
     $offerId = (int)($data['offer_id'] ?? 0);
     $installerId = isset($data['installer_id']) ? (int)$data['installer_id'] : null;
+    $createdBy = isset($data['created_by']) ? (int)$data['created_by'] : null;
     $offerStmt = $pdo->prepare('SELECT o.id, o.name, o.commission, o.manager_id, g.name AS manager_name
                                 FROM offers o
                                 JOIN gestori g ON o.manager_id = g.id
@@ -358,8 +361,8 @@ function add_opportunity(array $data): array
 
     $now = new DateTimeImmutable();
     $code = generate_opportunity_code($pdo);
-    $pdo->prepare('INSERT INTO opportunities (opportunity_code, first_name, last_name, notes, offer_id, manager_id, commission, status, installer_id, month, created_at)
-                   VALUES (:opportunity_code, :first_name, :last_name, :notes, :offer_id, :manager_id, :commission, :status, :installer_id, :month, :created_at)')
+    $pdo->prepare('INSERT INTO opportunities (opportunity_code, first_name, last_name, notes, offer_id, manager_id, commission, status, installer_id, created_by, month, created_at)
+                   VALUES (:opportunity_code, :first_name, :last_name, :notes, :offer_id, :manager_id, :commission, :status, :installer_id, :created_by, :month, :created_at)')
         ->execute([
             'opportunity_code' => $code,
             'first_name' => $data['first_name'],
@@ -370,6 +373,7 @@ function add_opportunity(array $data): array
             'commission' => $data['commission'] ?? $offer['commission'],
             'status' => STATUS_PENDING,
             'installer_id' => $installerId,
+            'created_by' => $createdBy,
             'month' => (int)$now->format('m'),
             'created_at' => $now->format('Y-m-d'),
         ]);

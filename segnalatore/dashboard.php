@@ -4,14 +4,14 @@ require_role('segnalatore');
 require_once __DIR__ . '/../includes/helpers.php';
 
 $user = current_user();
-$segnalazioni = list_segnalazioni(['created_by' => (int)$user['id']]);
+$opportunities = filter_opportunities(['created_by' => (int)$user['id']]);
 $summary = [
-    'total' => count($segnalazioni),
-    'pending' => count(array_filter($segnalazioni, fn($s) => $s['status'] === 'In attesa')),
-    'ok' => count(array_filter($segnalazioni, fn($s) => $s['status'] === 'OK')),
-    'ko' => count(array_filter($segnalazioni, fn($s) => $s['status'] === 'KO')),
+    'total' => count($opportunities),
+    'pending' => count(array_filter($opportunities, fn($o) => $o['status'] === 'In attesa')),
+    'ok' => count(array_filter($opportunities, fn($o) => $o['status'] === 'OK')),
+    'ko' => count(array_filter($opportunities, fn($o) => $o['status'] === 'KO')),
 ];
-$latest = array_slice($segnalazioni, 0, 5);
+$latest = array_slice($opportunities, 0, 5);
 
 $pageTitle = 'Dashboard';
 $bottomNav = '
@@ -80,24 +80,24 @@ $name = $parts[0] . ' ' . (isset($parts[1]) ? substr($parts[1], 0, 1) . '.' : ''
 </div>
 
 <div class="d-flex justify-content-between align-items-center mb-2">
-    <div class="bite">Ultime segnalazioni</div>
+    <div class="bite">Ultime opportunità</div>
     <a href="/segnalatore/segnalazioni.php" class="btn btn-sm btn-outline-primary">Vedi tutte</a>
 </div>
 <?php if (empty($latest)): ?>
     <div class="card-soft p-3 text-center text-muted">
-        Nessuna segnalazione ancora inviata.
+        Nessuna opportunità ancora creata.
     </div>
 <?php else: ?>
-    <?php foreach ($latest as $seg): ?>
+    <?php foreach ($latest as $opp): ?>
         <div class="card-soft p-3 mb-2">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <div class="fw-bold"><?php echo sanitize($seg['first_name'] . ' ' . $seg['last_name']); ?></div>
-                    <div class="text-muted small"><?php echo sanitize($seg['offer_name']); ?></div>
-                    <div class="small text-muted">Inviata: <?php echo date('d/m/Y', strtotime($seg['created_at'])); ?></div>
+                    <div class="fw-bold"><?php echo sanitize($opp['first_name'] . ' ' . $opp['last_name']); ?></div>
+                    <div class="text-muted small"><?php echo sanitize($opp['offer_name']); ?></div>
+                    <div class="small text-muted">Creata: <?php echo date('d/m/Y', strtotime($opp['created_at'])); ?></div>
                 </div>
                 <div class="text-end">
-                    <span class="badge bg-secondary"><?php echo sanitize($seg['status']); ?></span>
+                    <span class="badge bg-secondary"><?php echo sanitize($opp['status']); ?></span>
                 </div>
             </div>
         </div>
@@ -105,6 +105,6 @@ $name = $parts[0] . ' ' . (isset($parts[1]) ? substr($parts[1], 0, 1) . '.' : ''
 <?php endif; ?>
 
 <div class="d-grid mt-4">
-    <a class="btn btn-primary btn-pill" href="/segnalatore/new_opportunity.php">+ Nuova segnalazione</a>
+    <a class="btn btn-primary btn-pill" href="/segnalatore/new_opportunity.php">+ Nuova opportunità</a>
 </div>
 <?php include __DIR__ . '/../includes/layout/footer.php'; ?>
