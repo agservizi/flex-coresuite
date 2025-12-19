@@ -7,6 +7,7 @@ $pageTitle = 'Stati';
 $bottomNav = '
     <a class="nav-pill" href="/admin/dashboard.php"><span class="dot"></span><span>Home</span></a>
     <a class="nav-pill" href="/admin/opportunities.php"><span class="dot"></span><span>Opportunity</span></a>
+    <a class="nav-pill" href="/admin/new_urgent.php"><span class="dot"></span><span>Urgente</span></a>
     <a class="nav-pill" href="/admin/report.php"><span class="dot"></span><span>Report</span></a>
     <a class="nav-pill" href="/admin/settings.php"><span class="dot"></span><span>Impostazioni</span></a>
 ';
