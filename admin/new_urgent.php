@@ -119,7 +119,7 @@ include __DIR__ . '/../includes/layout/header.php';
         </div>
         <div class="col-md-6">
             <label class="form-label">Cellulare *</label>
-            <input type="tel" name="phone" class="form-control" required>
+            <input type="tel" name="phone" class="form-control" inputmode="numeric" required>
         </div>
         <div class="col-md-6">
             <label class="form-label">Indirizzo *</label>
