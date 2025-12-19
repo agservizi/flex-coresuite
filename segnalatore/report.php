@@ -33,16 +33,20 @@ include __DIR__ . '/../includes/layout/header.php';
         <h1 class="h5 fw-bold mb-0">Mensile personale</h1>
     </div>
     <div class="d-flex align-items-center gap-2">
-        <form method="get" class="d-flex align-items-center gap-2 mb-0">
-            <select class="form-select" name="month" onchange="this.form.submit()">
-                <?php foreach (month_options() as $m): ?>
-                    <option value="<?php echo $m['value']; ?>" <?php echo ($month == $m['value']) ? 'selected' : ''; ?>><?php echo $m['label']; ?></option>
-                <?php endforeach; ?>
-            </select>
-        </form>
         <a class="btn btn-outline-secondary btn-sm" href="/auth/logout.php">Logout</a>
     </div>
 </div>
+
+<form class="row g-2 mb-3" method="get" data-auto-submit="true" data-auto-save="filters-report-segnalatore">
+    <div class="col-12">
+        <select class="form-select" name="month">
+            <option value="">Tutti i mesi</option>
+            <?php foreach (month_options() as $m): ?>
+                <option value="<?php echo $m['value']; ?>" <?php echo ($month == $m['value']) ? 'selected' : ''; ?>><?php echo $m['label']; ?></option>
+            <?php endforeach; ?>
+        </select>
+    </div>
+</form>
 
 <div class="card-soft p-3 mb-3">
     <div class="row g-2">
@@ -79,25 +83,24 @@ include __DIR__ . '/../includes/layout/header.php';
     </div>
 </div>
 
-<div class="card-soft p-3">
-    <div class="bite">Dettagli segnalazioni</div>
-    <?php if (empty($segnalazioni)): ?>
-        <div class="text-center text-muted py-3">Nessuna segnalazione in questo mese.</div>
-    <?php else: ?>
-        <div class="list-group">
-            <?php foreach ($segnalazioni as $seg): ?>
-                <div class="list-group-item d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="fw-bold"><?php echo sanitize($seg['first_name'] . ' ' . $seg['last_name']); ?></div>
-                        <div class="text-muted small"><?php echo sanitize($seg['offer_name']); ?> · <?php echo date('d/m/Y', strtotime($seg['created_at'])); ?></div>
-                    </div>
-                    <div class="text-end">
-                        <span class="badge bg-secondary"><?php echo sanitize($seg['status']); ?></span>
-                        <div class="fw-bold">€ <?php echo number_format((float)$seg['commission'], 2, ',', '.'); ?></div>
-                    </div>
-                </div>
-            <?php endforeach; ?>
+<h2 class="h6 fw-bold">Dettagli</h2>
+<?php foreach ($segnalazioni as $seg): ?>
+    <div class="card-soft p-3 mb-2">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <div class="fw-bold"><?php echo sanitize($seg['first_name'] . ' ' . $seg['last_name']); ?></div>
+                <div class="text-muted small"><?php echo sanitize($seg['offer_name']); ?> · <?php echo sanitize($seg['manager_name']); ?></div>
+                <div class="small text-muted">Segnalatore: <?php echo sanitize($user['name']); ?></div>
+            </div>
+            <div class="text-end">
+                <span class="badge bg-secondary"><?php echo sanitize($seg['status']); ?></span>
+                <div class="fw-bold">€ <?php echo number_format((float)$seg['commission'], 2, ',', '.'); ?></div>
+            </div>
         </div>
-    <?php endif; ?>
-</div>
+    </div>
+<?php endforeach; ?>
+
+<?php if (empty($segnalazioni)): ?>
+    <div class="alert alert-info">Nessuna segnalazione trovata.</div>
+<?php endif; ?>
 <?php include __DIR__ . '/../includes/layout/footer.php'; ?>
