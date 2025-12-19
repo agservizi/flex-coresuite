@@ -242,8 +242,8 @@ function get_opportunities(array $filters = []): array
                    u.name AS installer_name,
                    cu.name AS segnalatore_name
             FROM opportunities o
-            JOIN offers off ON o.offer_id = off.id
-            JOIN gestori g ON o.manager_id = g.id
+            LEFT JOIN offers off ON o.offer_id = off.id
+            LEFT JOIN gestori g ON o.manager_id = g.id
             LEFT JOIN users u ON o.installer_id = u.id
             LEFT JOIN users cu ON o.created_by = cu.id
             WHERE 1=1';
