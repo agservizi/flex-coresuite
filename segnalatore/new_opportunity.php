@@ -17,8 +17,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $iban = sanitize($_POST['iban'] ?? '');
         $offerId = (int)($_POST['offer_id'] ?? 0);
 
-        if (!$first || !$last || !$offerId || empty($_FILES['docs']['name'][0])) {
-            $error = 'Compila tutti i campi obbligatori.';
+        if (!$first || !$last || !$offerId) {
+            $error = 'Compila tutti i campi obbligatori (nome, cognome, offerta). I documenti sono facoltativi per ora.';
         } elseif (strlen($first) > 120 || strlen($last) > 120) {
             $error = 'Verifica lunghezza dei campi.';
         } else {
@@ -112,7 +112,7 @@ $name = $parts[0] . ' ' . (isset($parts[1]) ? substr($parts[1], 0, 1) . '.' : ''
 
         <div class="mb-3">
             <label class="form-label fw-semibold">Documenti ammessi (CIE, Patente IT, Passaporto, Tessera sanitaria) - foto o PDF</label>
-            <input type="file" class="form-control" name="docs[]" id="docs" accept="image/*,application/pdf" multiple data-doc-preview required>
+            <input type="file" class="form-control" name="docs[]" id="docs" accept="image/*,application/pdf" multiple>
             <div class="small text-muted mt-1">Max 5MB ciascuno · puoi usare la fotocamera del telefono per scattare le foto</div>
             <div class="doc-preview mt-2" data-doc-preview-list></div>
         </div>
