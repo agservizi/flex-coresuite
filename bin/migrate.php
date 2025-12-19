@@ -75,6 +75,13 @@ $pdo->exec('CREATE TABLE IF NOT EXISTS push_subscriptions (
     INDEX idx_push_user (user_id)
 )');
 
+// Ensure columns exist (in case table was created without them)
+$pdo->exec('ALTER TABLE push_subscriptions ADD COLUMN IF NOT EXISTS token VARCHAR(255) NULL');
+$pdo->exec('ALTER TABLE push_subscriptions ADD COLUMN IF NOT EXISTS platform VARCHAR(50) NULL');
+$pdo->exec('ALTER TABLE push_subscriptions ADD UNIQUE KEY IF NOT EXISTS idx_push_token (token)');
+$pdo->exec('ALTER TABLE push_subscriptions DROP INDEX IF EXISTS idx_push_endpoint');
+$pdo->exec('ALTER TABLE push_subscriptions ADD UNIQUE KEY IF NOT EXISTS idx_push_endpoint (endpoint)');
+
 // Nessun seed automatico: gestori e offerte vanno inseriti dall'admin.
 
 echo "Migrations and seed completed.\n";
