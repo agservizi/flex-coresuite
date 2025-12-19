@@ -133,6 +133,7 @@ include __DIR__ . '/../includes/layout/header.php';
                 <div class="text-muted small"><?php echo sanitize($op['created_at']); ?></div>
             </div>
         </div>
+        <?php if ($op['commission'] > 0): ?>
         <form method="post" class="card-action">
             <?php echo csrf_field(); ?>
             <input type="hidden" name="op_id" value="<?php echo $op['id']; ?>">
@@ -143,6 +144,7 @@ include __DIR__ . '/../includes/layout/header.php';
                 <button name="status" value="<?php echo STATUS_KO; ?>" class="btn btn-outline-danger btn-sm">KO</button>
             </div>
         </form>
+        <?php endif; ?>
     </div>
 <?php endforeach; ?>
 
