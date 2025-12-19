@@ -3,6 +3,8 @@ require_once __DIR__ . '/../includes/permissions.php';
 require_role('segnalatore');
 require_once __DIR__ . '/../includes/helpers.php';
 
+setlocale(LC_TIME, 'it_IT.UTF-8');
+
 $user = current_user();
 $opportunities = filter_opportunities(['created_by' => (int)$user['id']]);
 $summary = [
@@ -43,7 +45,7 @@ $name = $parts[0] . ' ' . (isset($parts[1]) ? substr($parts[1], 0, 1) . '.' : ''
             <div class="bite">Riepilogo</div>
             <h2 class="h5 fw-bold mb-0">Andamento rapido</h2>
         </div>
-        <span class="badge badge-soft"><?php echo date('M Y'); ?></span>
+        <span class="badge badge-soft"><?php echo strftime('%b %Y'); ?></span>
     </div>
     <div class="row g-2">
         <div class="col-6">
@@ -94,7 +96,7 @@ $name = $parts[0] . ' ' . (isset($parts[1]) ? substr($parts[1], 0, 1) . '.' : ''
                 <div>
                     <div class="fw-bold"><?php echo sanitize($opp['first_name'] . ' ' . $opp['last_name']); ?></div>
                     <div class="text-muted small"><?php echo sanitize($opp['offer_name']); ?></div>
-                    <div class="small text-muted">Creata: <?php echo date('d/m/Y', strtotime($opp['created_at'])); ?></div>
+                    <div class="small text-muted">Creata: <?php echo strftime('%d/%m/%Y', strtotime($opp['created_at'])); ?></div>
                 </div>
                 <div class="text-end">
                     <span class="badge bg-secondary"><?php echo sanitize($opp['status']); ?></span>

@@ -3,6 +3,8 @@ require_once __DIR__ . '/../includes/permissions.php';
 require_role('installer');
 require_once __DIR__ . '/../includes/helpers.php';
 
+setlocale(LC_TIME, 'it_IT.UTF-8');
+
 $user = current_user();
 $ops = filter_opportunities(['installer_id' => $user['id']]);
 $summary = summarize($ops);
@@ -34,7 +36,7 @@ include __DIR__ . '/../includes/layout/header.php';
             <div class="bite">Riepilogo</div>
             <h2 class="h5 fw-bold mb-0">Andamento rapido</h2>
         </div>
-        <span class="badge badge-soft"><?php echo date('M Y'); ?></span>
+        <span class="badge badge-soft"><?php echo strftime('%b %Y'); ?></span>
     </div>
     <div class="row g-2">
         <div class="col-6">

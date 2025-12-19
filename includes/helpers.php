@@ -1,6 +1,8 @@
 <?php
 require_once __DIR__ . '/data.php';
 
+setlocale(LC_TIME, 'it_IT.UTF-8');
+
 function sanitize(string $value): string
 {
     return htmlspecialchars(trim($value), ENT_QUOTES, 'UTF-8');
@@ -295,7 +297,7 @@ function notify_new_opportunity_email(array $op): void
         . '<tr><td style="padding:6px 0;color:#6c757d;">Email installer</td><td style="padding:6px 0;">' . htmlspecialchars((string)($op['installer_email'] ?? '')) . '</td></tr>'
         . '<tr><td style="padding:6px 0;color:#6c757d;">Note</td><td style="padding:6px 0;">' . nl2br(htmlspecialchars((string)($op['notes'] ?? ''))) . '</td></tr>'
         . '</table>'
-        . '<p style="color:#6c757d;font-size:13px;">Inviato il ' . date('d/m/Y H:i') . '.</p>';
+        . '<p style="color:#6c757d;font-size:13px;">Inviato il ' . strftime('%d/%m/%Y %H:%M') . '.</p>';
 
     $html = render_email_wrapper('Nuova opportunity', $body, null, null, APP_NAME . ' · ' . (getenv('COMPANY_NAME') ?: ''));
 
@@ -308,7 +310,7 @@ function notify_new_opportunity_email(array $op): void
         'Installer: ' . ($op['installer_name'] ?? '') . "\n" .
         'Email installer: ' . ($op['installer_email'] ?? '') . "\n" .
         'Note: ' . ($op['notes'] ?? '') . "\n" .
-        'Inviato il: ' . date('d/m/Y H:i');
+        'Inviato il: ' . strftime('%d/%m/%Y %H:%M');
 
     send_resend_email($to, $subject, $html, $text);
 }
@@ -384,14 +386,14 @@ function notify_installer_status_change(int $installerId, string $installerName,
         . '<tr><td style="padding:6px 0;color:#6c757d;">Codice</td><td style="padding:6px 0;font-weight:600;">' . htmlspecialchars($opCode) . '</td></tr>'
         . '<tr><td style="padding:6px 0;color:#6c757d;">Stato</td><td style="padding:6px 0;font-weight:600;">' . htmlspecialchars($newStatus) . '</td></tr>'
         . '</table>'
-        . '<p style="color:#6c757d;font-size:13px;">Aggiornato il ' . date('d/m/Y H:i') . '.</p>';
+        . '<p style="color:#6c757d;font-size:13px;">Aggiornato il ' . strftime('%d/%m/%Y %H:%M') . '.</p>';
 
     $html = render_email_wrapper('Opportunity aggiornata', $body, null, null, APP_NAME . ' · ' . (getenv('COMPANY_NAME') ?: ''));
 
     $text = "Ciao $installerName,\n"
         . 'Stato aggiornato a: ' . $newStatus . "\n"
         . 'Codice: ' . $opCode . "\n"
-        . 'Aggiornato il: ' . date('d/m/Y H:i');
+        . 'Aggiornato il: ' . strftime('%d/%m/%Y %H:%M');
 
     send_resend_email($installerEmail, $subject, $html, $text);
 }
