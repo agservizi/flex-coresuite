@@ -59,6 +59,18 @@ include __DIR__ . '/../includes/layout/header.php';
                 <div class="fw-bold"><?php echo sanitize($op['first_name'] . ' ' . $op['last_name']); ?></div>
                 <div class="text-muted small"><?php echo sanitize($op['offer_name']); ?> · <?php echo sanitize($op['manager_name']); ?></div>
                 <div class="small text-muted">Codice: <?php echo sanitize($op['opportunity_code'] ?? ''); ?></div>
+                <?php if (!empty($op['phone'])): ?>
+                    <div class="small text-muted">Cell: <?php echo sanitize($op['phone']); ?></div>
+                <?php endif; ?>
+                <?php if (!empty($op['address'])): ?>
+                    <div class="small text-muted">Indirizzo: <?php echo sanitize($op['address']); ?></div>
+                <?php endif; ?>
+                <?php if (!empty($op['city'])): ?>
+                    <div class="small text-muted">Città: <?php echo sanitize($op['city']); ?></div>
+                <?php endif; ?>
+                <?php if (strpos($op['notes'], 'Urgente') !== false): ?>
+                    <span class="badge bg-danger">Installazione urgente</span>
+                <?php endif; ?>
             </div>
             <span class="badge bg-secondary"><?php echo sanitize($op['status']); ?></span>
         </div>
