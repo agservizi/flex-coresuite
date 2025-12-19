@@ -70,6 +70,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
 
                 $message = 'Segnalazione urgente inviata (#' . $opp['opportunity_code'] . ')';
+
+                // Redirect alla lista opportunity
+                header("Location: /admin/opportunities.php");
+                exit;
             } catch (Throwable $e) {
                 $error = 'Errore: ' . $e->getMessage();
             }
