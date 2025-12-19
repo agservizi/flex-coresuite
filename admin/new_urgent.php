@@ -87,6 +87,7 @@ $bottomNav = '
     <a class="nav-pill" href="/admin/dashboard.php"><span class="dot"></span><span>Home</span></a>
     <a class="nav-pill" href="/admin/opportunities.php"><span class="dot"></span><span>Opportunity</span></a>
     <a class="nav-pill active" href="/admin/new_urgent.php"><span class="dot"></span><span>Urgente</span></a>
+    <a class="nav-pill" href="/admin/report.php"><span class="dot"></span><span>Report</span></a>
     <a class="nav-pill" href="/admin/settings.php"><span class="dot"></span><span>Impostazioni</span></a>
 ';
 include __DIR__ . '/../includes/layout/header.php';
@@ -139,23 +140,25 @@ include __DIR__ . '/../includes/layout/header.php';
             <input type="text" class="form-control offer-picker-trigger" id="offer_display" placeholder="Tipologia prodotto" readonly data-offer-picker-trigger data-offer-label value="Seleziona offerta" required>
             <label for="offer_display">Tipologia prodotto *</label>
         </div>
-        <div class="col-md-6">
-            <label class="form-label">Gestore *</label>
-            <select name="manager_id" class="form-select" required>
+        <div class="col-md-6 position-relative">
+            <select class="visually-hidden position-absolute" style="opacity:0; height:0; width:0; pointer-events:none;" id="manager_id" name="manager_id" data-manager-select data-native-select required>
                 <option value="">Seleziona gestore</option>
                 <?php foreach ($gestori as $g): ?>
                     <option value="<?php echo $g['id']; ?>"><?php echo sanitize($g['name']); ?></option>
                 <?php endforeach; ?>
             </select>
+            <input type="text" class="form-control manager-picker-trigger" id="manager_display" placeholder="Gestore" readonly data-manager-picker-trigger data-manager-label value="Seleziona gestore" required>
+            <label for="manager_display">Gestore *</label>
         </div>
-        <div class="col-12">
-            <label class="form-label">Installer *</label>
-            <select name="installer_id" class="form-select" required>
+        <div class="col-12 position-relative">
+            <select class="visually-hidden position-absolute" style="opacity:0; height:0; width:0; pointer-events:none;" id="installer_id" name="installer_id" data-installer-select data-native-select required>
                 <option value="">Seleziona installer</option>
                 <?php foreach ($users as $u): if ($u['role'] !== 'installer') continue; ?>
                     <option value="<?php echo $u['id']; ?>"><?php echo sanitize($u['name']); ?></option>
                 <?php endforeach; ?>
             </select>
+            <input type="text" class="form-control installer-picker-trigger" id="installer_display" placeholder="Installer" readonly data-installer-picker-trigger data-installer-label value="Seleziona installer" required>
+            <label for="installer_display">Installer *</label>
         </div>
         <div class="col-12 d-flex justify-content-end">
             <button type="submit" class="btn btn-primary">Invia segnalazione urgente</button>
@@ -181,6 +184,44 @@ include __DIR__ . '/../includes/layout/header.php';
                     <div class="small text-muted"><?php echo sanitize($offer['manager_name']); ?></div>
                 </div>
                 <div class="fw-bold text-primary">€ <?php echo number_format($offer['commission'], 2, ',', '.'); ?></div>
+            </button>
+        <?php endforeach; ?>
+    </div>
+</div>
+<div class="sheet-backdrop" data-manager-picker-backdrop></div>
+<div class="sheet" data-manager-picker>
+    <div class="sheet-handle"></div>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="fw-bold">Scegli gestore</div>
+        <button type="button" class="btn btn-sm btn-outline-secondary" data-manager-picker-close>Chiudi</button>
+    </div>
+    <div class="list-group">
+        <?php foreach ($gestori as $g): ?>
+            <button type="button"
+                    class="list-group-item list-group-item-action d-flex justify-content-between align-items-center manager-option"
+                    data-manager-option
+                    data-id="<?php echo $g['id']; ?>"
+                    data-label="<?php echo sanitize($g['name']); ?>">
+                <div class="fw-semibold"><?php echo sanitize($g['name']); ?></div>
+            </button>
+        <?php endforeach; ?>
+    </div>
+</div>
+<div class="sheet-backdrop" data-installer-picker-backdrop></div>
+<div class="sheet" data-installer-picker>
+    <div class="sheet-handle"></div>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="fw-bold">Scegli installer</div>
+        <button type="button" class="btn btn-sm btn-outline-secondary" data-installer-picker-close>Chiudi</button>
+    </div>
+    <div class="list-group">
+        <?php foreach ($users as $u): if ($u['role'] !== 'installer') continue; ?>
+            <button type="button"
+                    class="list-group-item list-group-item-action d-flex justify-content-between align-items-center installer-option"
+                    data-installer-option
+                    data-id="<?php echo $u['id']; ?>"
+                    data-label="<?php echo sanitize($u['name']); ?>">
+                <div class="fw-semibold"><?php echo sanitize($u['name']); ?></div>
             </button>
         <?php endforeach; ?>
     </div>

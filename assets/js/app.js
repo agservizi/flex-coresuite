@@ -21,6 +21,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   setupOfferPicker();
+  setupManagerPicker();
+  setupInstallerPicker();
   setupSavedFilters();
   setupDocPreviews();
 
@@ -258,6 +260,90 @@ function setupOfferPicker() {
     opt.addEventListener('click', () => {
       const id = opt.dataset.id || '';
       const text = opt.dataset.label || 'Seleziona offerta';
+      select.value = id;
+      if ('value' in label) {
+        label.value = text;
+      } else {
+        label.textContent = text;
+      }
+      close();
+    });
+  });
+}
+
+function setupManagerPicker() {
+  const trigger = document.querySelector('[data-manager-picker-trigger]');
+  const sheet = document.querySelector('[data-manager-picker]');
+  const backdrop = document.querySelector('[data-manager-picker-backdrop]');
+  const select = document.querySelector('[data-manager-select]');
+  const label = document.querySelector('[data-manager-label]');
+  if (!trigger || !sheet || !select || !label) return;
+
+  const closeBtn = sheet.querySelector('[data-manager-picker-close]');
+  const options = sheet.querySelectorAll('[data-manager-option]');
+
+  const open = () => {
+    sheet.classList.add('show');
+    if (backdrop) backdrop.classList.add('show');
+    document.body.classList.add('no-scroll');
+  };
+
+  const close = () => {
+    sheet.classList.remove('show');
+    if (backdrop) backdrop.classList.remove('show');
+    document.body.classList.remove('no-scroll');
+  };
+
+  trigger.addEventListener('click', open);
+  if (backdrop) backdrop.addEventListener('click', close);
+  if (closeBtn) closeBtn.addEventListener('click', close);
+
+  options.forEach(opt => {
+    opt.addEventListener('click', () => {
+      const id = opt.dataset.id || '';
+      const text = opt.dataset.label || 'Seleziona gestore';
+      select.value = id;
+      if ('value' in label) {
+        label.value = text;
+      } else {
+        label.textContent = text;
+      }
+      close();
+    });
+  });
+}
+
+function setupInstallerPicker() {
+  const trigger = document.querySelector('[data-installer-picker-trigger]');
+  const sheet = document.querySelector('[data-installer-picker]');
+  const backdrop = document.querySelector('[data-installer-picker-backdrop]');
+  const select = document.querySelector('[data-installer-select]');
+  const label = document.querySelector('[data-installer-label]');
+  if (!trigger || !sheet || !select || !label) return;
+
+  const closeBtn = sheet.querySelector('[data-installer-picker-close]');
+  const options = sheet.querySelectorAll('[data-installer-option]');
+
+  const open = () => {
+    sheet.classList.add('show');
+    if (backdrop) backdrop.classList.add('show');
+    document.body.classList.add('no-scroll');
+  };
+
+  const close = () => {
+    sheet.classList.remove('show');
+    if (backdrop) backdrop.classList.remove('show');
+    document.body.classList.remove('no-scroll');
+  };
+
+  trigger.addEventListener('click', open);
+  if (backdrop) backdrop.addEventListener('click', close);
+  if (closeBtn) closeBtn.addEventListener('click', close);
+
+  options.forEach(opt => {
+    opt.addEventListener('click', () => {
+      const id = opt.dataset.id || '';
+      const text = opt.dataset.label || 'Seleziona installer';
       select.value = id;
       if ('value' in label) {
         label.value = text;
