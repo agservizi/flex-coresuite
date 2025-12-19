@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $iban = sanitize($_POST['iban'] ?? '');
         $offerId = (int)($_POST['offer_id'] ?? 0);
 
-        if (!$first || !$last || !$iban || !$offerId || empty($_FILES['docs']['name'][0])) {
+        if (!$first || !$last || !$offerId || empty($_FILES['docs']['name'][0])) {
             $error = 'Compila tutti i campi obbligatori.';
         } elseif (strlen($first) > 120 || strlen($last) > 120) {
             $error = 'Verifica lunghezza dei campi.';
@@ -118,8 +118,8 @@ $name = $parts[0] . ' ' . (isset($parts[1]) ? substr($parts[1], 0, 1) . '.' : ''
         </div>
 
         <div class="form-floating mb-3">
-            <input type="text" class="form-control" id="iban" name="iban" placeholder="IBAN" required>
-            <label for="iban">IBAN</label>
+            <input type="text" class="form-control" id="iban" name="iban" placeholder="IBAN">
+            <label for="iban">IBAN (facoltativo)</label>
         </div>
 
         <div class="d-grid mt-3">
