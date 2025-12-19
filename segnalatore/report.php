@@ -9,6 +9,7 @@ $month = sanitize($_GET['month'] ?? date('n'));
 $opportunities = filter_opportunities([
     'created_by' => (int)$user['id'],
     'month' => $month,
+    'exclude_urgent' => true,
 ]);
 $summary = [
     'total' => count($opportunities),

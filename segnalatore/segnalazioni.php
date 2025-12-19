@@ -8,7 +8,7 @@ $user = current_user();
 $search = $_GET['search'] ?? '';
 $page = max(1, (int)($_GET['page'] ?? 1));
 $perPage = 10;
-$filters = ['created_by' => (int)$user['id']];
+$filters = ['created_by' => (int)$user['id'], 'exclude_urgent' => true];
 if (!empty($search)) $filters['search'] = $search;
 $total = count(filter_opportunities($filters));
 $totalPages = ceil($total / $perPage);

@@ -6,7 +6,7 @@ require_once __DIR__ . '/../includes/helpers.php';
 setlocale(LC_TIME, 'it_IT.UTF-8');
 
 $user = current_user();
-$opportunities = filter_opportunities(['created_by' => (int)$user['id']]);
+$opportunities = filter_opportunities(['created_by' => (int)$user['id'], 'exclude_urgent' => true]);
 $summary = [
     'total' => count($opportunities),
     'pending' => count(array_filter($opportunities, fn($o) => $o['status'] === 'In attesa')),
