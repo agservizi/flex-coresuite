@@ -743,7 +743,7 @@ function list_segnalazioni(array $filters = []): array
 {
     seed_data();
     $sql = 'SELECT s.id, s.first_name, s.last_name, s.offer_id, s.manager_id, s.status, s.created_by, s.created_at, s.opportunity_id,
-                   o.name AS offer_name, g.name AS manager_name, u.name AS creator_name,
+                   o.name AS offer_name, o.commission, g.name AS manager_name, u.name AS creator_name,
                    (SELECT COUNT(*) FROM segnalazione_docs d WHERE d.segnalazione_id = s.id) AS doc_count
             FROM segnalazioni s
             JOIN offers o ON s.offer_id = o.id

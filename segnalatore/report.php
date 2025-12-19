@@ -13,8 +13,9 @@ $segnalazioni = list_segnalazioni([
 $summary = [
     'total' => count($segnalazioni),
     'pending' => count(array_filter($segnalazioni, fn($s) => $s['status'] === 'In attesa')),
-    'ok' => count(array_filter($segnalazioni, fn($s) => $s['status'] === 'OK')),
-    'ko' => count(array_filter($segnalazioni, fn($s) => $s['status'] === 'KO')),
+    'ok' => count(array_filter($segnalazioni, fn($s) => $s['status'] === 'Accettata')),
+    'ko' => count(array_filter($segnalazioni, fn($s) => $s['status'] === 'Rifiutata')),
+    'commission_total' => array_sum(array_map(fn($s) => $s['status'] === 'Accettata' ? (float)$s['commission'] : 0, $segnalazioni)),
 ];
 
 $pageTitle = 'Report mensile';
@@ -52,18 +53,24 @@ include __DIR__ . '/../includes/layout/header.php';
             </div>
         </div>
         <div class="col-6">
+            <div class="stat-chip">
+                <div class="bite">Provvigioni potenziali</div>
+                <div class="h4 fw-bold mb-0">€ <?php echo number_format($summary['commission_total'], 2, ',', '.'); ?></div>
+            </div>
+        </div>
+        <div class="col-4">
             <div class="stat-chip text-ok">
                 <div class="bite">Approvate</div>
                 <div class="h4 fw-bold mb-0"><?php echo $summary['ok']; ?></div>
             </div>
         </div>
-        <div class="col-6">
+        <div class="col-4">
             <div class="stat-chip text-warning">
                 <div class="bite">In attesa</div>
                 <div class="h4 fw-bold mb-0"><?php echo $summary['pending']; ?></div>
             </div>
         </div>
-        <div class="col-6">
+        <div class="col-4">
             <div class="stat-chip text-danger-soft">
                 <div class="bite">Rifiutate</div>
                 <div class="h4 fw-bold mb-0"><?php echo $summary['ko']; ?></div>
@@ -84,7 +91,10 @@ include __DIR__ . '/../includes/layout/header.php';
                         <div class="fw-bold"><?php echo sanitize($seg['first_name'] . ' ' . $seg['last_name']); ?></div>
                         <div class="text-muted small"><?php echo sanitize($seg['offer_name']); ?> · <?php echo date('d/m/Y', strtotime($seg['created_at'])); ?></div>
                     </div>
-                    <span class="badge bg-secondary"><?php echo sanitize($seg['status']); ?></span>
+                    <div class="text-end">
+                        <span class="badge bg-secondary"><?php echo sanitize($seg['status']); ?></span>
+                        <div class="fw-bold">€ <?php echo number_format((float)$seg['commission'], 2, ',', '.'); ?></div>
+                    </div>
                 </div>
             <?php endforeach; ?>
         </div>
