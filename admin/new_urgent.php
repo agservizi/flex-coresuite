@@ -42,6 +42,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $subs = get_push_subscriptions($installerId);
                 send_push_notification($subs, 'Nuova segnalazione urgente', "Cliente: $first $last - $address, $city");
 
+                // Email all'installer
+                $installer = array_find($users, fn($u) => $u['id'] == $installerId);
+                if ($installer && !empty($installer['email'])) {
+                    $subject = 'Nuova segnalazione urgente #' . $opp['opportunity_code'];
+                    $body = '<p>Ciao ' . htmlspecialchars($installer['name']) . ',</p>'
+                        . '<p>Hai ricevuto una nuova segnalazione urgente.</p>'
+                        . '<table style="border-collapse:collapse;width:100%;font-size:14px;">'
+                        . '<tr><td style="padding:6px 0;color:#6c757d;">Codice</td><td style="padding:6px 0;font-weight:600;">' . htmlspecialchars($opp['opportunity_code']) . '</td></tr>'
+                        . '<tr><td style="padding:6px 0;color:#6c757d;">Cliente</td><td style="padding:6px 0;font-weight:600;">' . htmlspecialchars("$first $last") . '</td></tr>'
+                        . '<tr><td style="padding:6px 0;color:#6c757d;">Cellulare</td><td style="padding:6px 0;">' . htmlspecialchars($phone) . '</td></tr>'
+                        . '<tr><td style="padding:6px 0;color:#6c757d;">Indirizzo</td><td style="padding:6px 0;">' . htmlspecialchars("$address, $city") . '</td></tr>'
+                        . '</table>'
+                        . '<p style="color:#6c757d;font-size:13px;">Inviato il ' . strftime('%d/%m/%Y %H:%M') . '.</p>';
+
+                    $html = render_email_wrapper('Nuova segnalazione urgente', $body, null, null, APP_NAME . ' · ' . (getenv('COMPANY_NAME') ?: ''));
+
+                    $text = "Ciao {$installer['name']},\n"
+                        . 'Nuova segnalazione urgente' . "\n"
+                        . 'Codice: ' . $opp['opportunity_code'] . "\n"
+                        . 'Cliente: ' . "$first $last" . "\n"
+                        . 'Cellulare: ' . $phone . "\n"
+                        . 'Indirizzo: ' . "$address, $city" . "\n"
+                        . 'Inviato il: ' . strftime('%d/%m/%Y %H:%M');
+
+                    send_resend_email($installer['email'], $subject, $html, $text);
+                }
+
                 $message = 'Segnalazione urgente inviata (#' . $opp['opportunity_code'] . ')';
             } catch (Throwable $e) {
                 $error = 'Errore: ' . $e->getMessage();
