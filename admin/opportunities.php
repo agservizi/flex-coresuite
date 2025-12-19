@@ -7,6 +7,9 @@ $users = get_users();
 $user = current_user();
 $gestori = get_gestori();
 
+$message = null;
+$error = null;
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['op_id'], $_POST['status'])) {
     if (!verify_csrf()) {
         $error = 'Sessione scaduta, ricarica la pagina.';
