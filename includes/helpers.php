@@ -154,11 +154,14 @@ function build_vapid_jwt(string $audience, string $subject, string $privateKeyPe
 function send_push_notification(array $subscriptions, string $title, string $body): void
 {
     if (empty($subscriptions)) {
+        error_log('send_push_notification: no subscriptions');
         return;
     }
 
     $webSubs = array_filter($subscriptions, fn($sub) => !empty($sub['endpoint']));
     $nativeSubs = array_filter($subscriptions, fn($sub) => !empty($sub['token']));
+
+    error_log('send_push_notification: ' . count($webSubs) . ' web subs, ' . count($nativeSubs) . ' native subs');
 
     // Send web push
     if (!empty($webSubs)) {
@@ -203,6 +206,7 @@ function send_push_notification(array $subscriptions, string $title, string $bod
     if (!empty($nativeSubs)) {
         $fcmKey = getenv('FCM_SERVER_KEY');
         if ($fcmKey) {
+            error_log('FCM key found, sending to ' . count($nativeSubs) . ' tokens');
             foreach ($nativeSubs as $sub) {
                 $token = $sub['token'] ?? '';
                 if (!$token) continue;
@@ -227,12 +231,16 @@ function send_push_notification(array $subscriptions, string $title, string $bod
                         CURLOPT_TIMEOUT => 10,
                         CURLOPT_POSTFIELDS => json_encode($payload),
                     ]);
-                    curl_exec($ch);
+                    $result = curl_exec($ch);
+                    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
                     curl_close($ch);
+                    error_log('FCM push sent to ' . substr($token, 0, 20) . '... , response: ' . $httpCode . ' ' . substr($result, 0, 100));
                 } catch (Throwable $e) {
-                    // ignora errori push
+                    error_log('FCM push failed: ' . $e->getMessage());
                 }
             }
+        } else {
+            error_log('FCM_SERVER_KEY missing');
         }
     }
 }

@@ -79,8 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                     $adminSubs = get_admin_push_subscriptions();
                     send_push_notification($adminSubs, 'Nuova segnalazione', $first . ' ' . $last);
-
-                    // Redirect alla pagina segnalazioni
+                error_log('Push notification sent for segnalazione ' . $opp['opportunity_code']);
                     header("Location: /segnalatore/segnalazioni.php");
                     exit;
                 } catch (Throwable $e) {
