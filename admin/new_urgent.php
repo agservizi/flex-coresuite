@@ -31,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'address' => $address,
                     'city' => $city,
                     'notes' => 'Urgente fibra',
-                    'offer_id' => 1, // Assume fibra 100
+                    'offer_id' => 0, // No offer for urgent
                     'commission' => 35.00, // Assume standard
                     'installer_id' => $installerId,
                     'manager_id' => $managerId,
