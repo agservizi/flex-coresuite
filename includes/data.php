@@ -275,6 +275,10 @@ function get_opportunities(array $filters = []): array
         }
     }
 
+    if (isset($filters['exclude_urgent']) && $filters['exclude_urgent']) {
+        $sql .= ' AND o.offer_id > 0';
+    }
+
     $sql .= ' ORDER BY o.created_at DESC, o.id DESC';
 
     $limit = isset($filters['limit']) ? (int)$filters['limit'] : null;

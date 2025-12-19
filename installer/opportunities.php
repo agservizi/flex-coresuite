@@ -76,7 +76,7 @@ include __DIR__ . '/../includes/layout/header.php';
         </div>
         <div class="d-flex justify-content-between align-items-center">
             <div class="text-muted small">Inserita il <?php echo sanitize($op['created_at']); ?></div>
-            <div class="fw-bold text-primary">€ <?php echo number_format($op['commission'], 2, ',', '.'); ?></div>
+            <div class="fw-bold text-primary"><?php echo $op['commission'] == 0 ? 'Urgente' : '€ ' . number_format($op['commission'], 2, ',', '.'); ?></div>
         </div>
     </div>
 <?php endforeach; ?>

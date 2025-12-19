@@ -10,6 +10,7 @@ $month = sanitize($_GET['month'] ?? '');
 $ops = filter_opportunities([
     'installer_id' => $installerId,
     'month' => $month,
+    'exclude_urgent' => true,
 ]);
 $summary = summarize($ops);
 
