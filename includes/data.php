@@ -309,8 +309,8 @@ function count_opportunities(array $filters = []): int
     seed_data();
     $sql = 'SELECT COUNT(*)
             FROM opportunities o
-            JOIN offers off ON o.offer_id = off.id
-            JOIN gestori g ON o.manager_id = g.id
+            LEFT JOIN offers off ON o.offer_id = off.id
+            LEFT JOIN gestori g ON o.manager_id = g.id
             LEFT JOIN users u ON o.installer_id = u.id
             WHERE 1=1';
     $params = [];
@@ -430,9 +430,9 @@ function get_opportunity(int $id): ?array
 {
     $stmt = db()->prepare('SELECT o.*, off.name AS offer_name, g.name AS manager_name, u.name AS installer_name
                            FROM opportunities o
-                           JOIN offers off ON o.offer_id = off.id
-                           JOIN gestori g ON o.manager_id = g.id
-                           JOIN users u ON o.installer_id = u.id
+                           LEFT JOIN offers off ON o.offer_id = off.id
+                           LEFT JOIN gestori g ON o.manager_id = g.id
+                           LEFT JOIN users u ON o.installer_id = u.id
                            WHERE o.id = :id');
     $stmt->execute(['id' => $id]);
     $row = $stmt->fetch();

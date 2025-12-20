@@ -4,6 +4,7 @@ require_role('installer');
 require_once __DIR__ . '/../includes/helpers.php';
 require_once __DIR__ . '/../includes/data.php';
 
+$user = current_user();
 $id = (int)($_GET['id'] ?? 0);
 if (!$id) {
     header('Location: opportunities.php');
@@ -11,7 +12,7 @@ if (!$id) {
 }
 
 $op = get_opportunity($id);
-if (!$op) {
+if (!$op || $op['installer_id'] != $user['id']) {
     header('Location: opportunities.php');
     exit;
 }
