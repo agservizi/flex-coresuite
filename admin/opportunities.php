@@ -105,63 +105,65 @@ include __DIR__ . '/../includes/layout/header.php';
 </form>
 
 <?php foreach ($ops as $op): ?>
-    <div class="card-soft p-3 mb-2">
-        <div class="d-flex justify-content-between align-items-start mb-2">
-            <div>
-                <div class="fw-bold"><?php echo sanitize($op['first_name'] . ' ' . $op['last_name']); ?></div>
-                <div class="text-muted small"><?php echo sanitize($op['offer_name']); ?> · <?php echo sanitize($op['manager_name']); ?></div>
-                <div class="small text-muted">Codice: <?php echo sanitize($op['opportunity_code'] ?? ''); ?></div>
-                <div class="small text-muted">Installer: <?php echo sanitize($op['installer_name']); ?></div>
-                <?php if (!empty($op['segnalatore_name'])): ?>
-                    <div class="small text-muted">Segnalatore: <?php echo sanitize($op['segnalatore_name']); ?></div>
-                <?php endif; ?>
-                <?php if (!empty($op['notes'])): ?>
-                    <?php
-                    $notes = $op['notes'];
-                    $fileLinks = '';
-                    if (strpos($notes, '|') !== false) {
-                        list($text, $json) = explode('|', $notes, 2);
-                        $fileData = json_decode($json, true);
-                        if ($fileData) {
-                            $fileLinks = '<br>Documenti: ';
-                            foreach ($fileData as $idx => $filePath) {
-                                $fileName = basename($filePath);
-                                $fileLinks .= '<a href="/download.php?type=opportunity&id=' . $op['id'] . '&index=' . $idx . '" target="_blank">' . sanitize($fileName) . '</a> ';
+    <a href="dettagli.php?id=<?php echo $op['id']; ?>" class="text-decoration-none">
+        <div class="card-soft p-3 mb-2">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                    <div class="fw-bold"><?php echo sanitize($op['first_name'] . ' ' . $op['last_name']); ?></div>
+                    <div class="text-muted small"><?php echo sanitize($op['offer_name']); ?> · <?php echo sanitize($op['manager_name']); ?></div>
+                    <div class="small text-muted">Codice: <?php echo sanitize($op['opportunity_code'] ?? ''); ?></div>
+                    <div class="small text-muted">Installer: <?php echo sanitize($op['installer_name']); ?></div>
+                    <?php if (!empty($op['segnalatore_name'])): ?>
+                        <div class="small text-muted">Segnalatore: <?php echo sanitize($op['segnalatore_name']); ?></div>
+                    <?php endif; ?>
+                    <?php if (!empty($op['notes'])): ?>
+                        <?php
+                        $notes = $op['notes'];
+                        $fileLinks = '';
+                        if (strpos($notes, '|') !== false) {
+                            list($text, $json) = explode('|', $notes, 2);
+                            $fileData = json_decode($json, true);
+                            if ($fileData) {
+                                $fileLinks = '<br>Documenti: ';
+                                foreach ($fileData as $idx => $filePath) {
+                                    $fileName = basename($filePath);
+                                    $fileLinks .= '<a href="/download.php?type=opportunity&id=' . $op['id'] . '&index=' . $idx . '" target="_blank">' . sanitize($fileName) . '</a> ';
+                                }
                             }
+                            $notes = $text;
                         }
-                        $notes = $text;
-                    }
-                    ?>
-                    <div class="small text-muted">Note: <?php echo sanitize($notes) . $fileLinks; ?></div>
-                <?php endif; ?>
-                <?php if (!empty($op['phone'])): ?>
-                    <div class="small text-muted">Cellulare: <?php echo sanitize($op['phone']); ?></div>
-                <?php endif; ?>
-                <?php if (!empty($op['address'])): ?>
-                    <div class="small text-muted">Indirizzo: <?php echo sanitize($op['address']); ?></div>
-                <?php endif; ?>
-                <?php if (!empty($op['city'])): ?>
-                    <div class="small text-muted">Città: <?php echo sanitize($op['city']); ?></div>
-                <?php endif; ?>
+                        ?>
+                        <div class="small text-muted">Note: <?php echo sanitize($notes) . $fileLinks; ?></div>
+                    <?php endif; ?>
+                    <?php if (!empty($op['phone'])): ?>
+                        <div class="small text-muted">Cellulare: <?php echo sanitize($op['phone']); ?></div>
+                    <?php endif; ?>
+                    <?php if (!empty($op['address'])): ?>
+                        <div class="small text-muted">Indirizzo: <?php echo sanitize($op['address']); ?></div>
+                    <?php endif; ?>
+                    <?php if (!empty($op['city'])): ?>
+                        <div class="small text-muted">Città: <?php echo sanitize($op['city']); ?></div>
+                    <?php endif; ?>
+                </div>
+                <div class="text-end">
+                    <div class="fw-bold"><?php echo $op['product_type'] == 0 ? 'Urgente' : '€ ' . number_format($op['commission'], 2, ',', '.'); ?></div>
+                    <div class="text-muted small"><?php echo strftime('%d %B %Y', strtotime($op['created_at'])); ?></div>
+                </div>
             </div>
-            <div class="text-end">
-                <div class="fw-bold"><?php echo $op['product_type'] == 0 ? 'Urgente' : '€ ' . number_format($op['commission'], 2, ',', '.'); ?></div>
-                <div class="text-muted small"><?php echo strftime('%d %B %Y', strtotime($op['created_at'])); ?></div>
-            </div>
+            <?php if ($op['product_type'] > 0): ?>
+            <form method="post" class="card-action">
+                <?php echo csrf_field(); ?>
+                <input type="hidden" name="op_id" value="<?php echo $op['id']; ?>">
+                <div class="state">Stato attuale: <?php echo sanitize($op['status']); ?></div>
+                <div class="d-flex gap-2">
+                    <button name="status" value="<?php echo STATUS_PENDING; ?>" class="btn btn-outline-secondary btn-sm">In attesa</button>
+                    <button name="status" value="<?php echo STATUS_OK; ?>" class="btn btn-outline-success btn-sm">OK</button>
+                    <button name="status" value="<?php echo STATUS_KO; ?>" class="btn btn-outline-danger btn-sm">KO</button>
+                </div>
+            </form>
+            <?php endif; ?>
         </div>
-        <?php if ($op['product_type'] > 0): ?>
-        <form method="post" class="card-action">
-            <?php echo csrf_field(); ?>
-            <input type="hidden" name="op_id" value="<?php echo $op['id']; ?>">
-            <div class="state">Stato attuale: <?php echo sanitize($op['status']); ?></div>
-            <div class="d-flex gap-2">
-                <button name="status" value="<?php echo STATUS_PENDING; ?>" class="btn btn-outline-secondary btn-sm">In attesa</button>
-                <button name="status" value="<?php echo STATUS_OK; ?>" class="btn btn-outline-success btn-sm">OK</button>
-                <button name="status" value="<?php echo STATUS_KO; ?>" class="btn btn-outline-danger btn-sm">KO</button>
-            </div>
-        </form>
-        <?php endif; ?>
-    </div>
+    </a>
 <?php endforeach; ?>
 
 <?php if (empty($ops)): ?>

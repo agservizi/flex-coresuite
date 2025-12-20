@@ -193,10 +193,12 @@ function send_push_notification(array $subscriptions, string $title, string $bod
                         CURLOPT_TIMEOUT => 10,
                         CURLOPT_POSTFIELDS => json_encode(['title' => $title, 'body' => $body]),
                     ]);
-                    curl_exec($ch);
+                    $result = curl_exec($ch);
+                    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
                     curl_close($ch);
+                    error_log('Web push sent to ' . substr($endpoint, 0, 50) . '... , response: ' . $httpCode . ' ' . substr($result, 0, 100));
                 } catch (Throwable $e) {
-                    // ignora errori push per non bloccare il flusso principale
+                    error_log('Web push failed: ' . $e->getMessage());
                 }
             }
         }
@@ -521,9 +523,36 @@ function notify_segnalatore_credentials(string $name, string $email, string $tok
     send_resend_email($email, $subject, $html, $text);
 }
 
-function set_flash(string $type, string $message): void
+function notify_installer_status_change(int $installerId, string $installerName, string $installerEmail, string $code, string $status): void
 {
-    $_SESSION['flash'] = ['type' => $type, 'message' => $message];
+    if (!$installerEmail) {
+        return;
+    }
+
+    $statusLabels = [
+        STATUS_PENDING => 'In attesa',
+        STATUS_OK => 'OK',
+        STATUS_KO => 'KO',
+    ];
+    $statusLabel = $statusLabels[$status] ?? $status;
+
+    $subject = 'Aggiornamento stato opportunity #' . $code;
+    $body = '<p>Ciao ' . htmlspecialchars($installerName) . ',</p>' .
+        '<p>Lo stato della tua opportunity è stato aggiornato.</p>' .
+        '<table style="border-collapse:collapse;width:100%;font-size:14px;">'
+        . '<tr><td style="padding:6px 0;color:#6c757d;">Codice</td><td style="padding:6px 0;font-weight:600;">' . htmlspecialchars($code) . '</td></tr>'
+        . '<tr><td style="padding:6px 0;color:#6c757d;">Nuovo stato</td><td style="padding:6px 0;font-weight:600;">' . htmlspecialchars($statusLabel) . '</td></tr>'
+        . '</table>'
+        . '<p style="margin-top:12px;color:#6c757d;font-size:13px;">Inviato il ' . strftime('%d/%m/%Y %H:%M') . '.</p>';
+
+    $html = render_email_wrapper('Aggiornamento stato opportunity', $body, null, null, APP_NAME . ' · ' . (getenv('COMPANY_NAME') ?: ''));
+
+    $text = "Ciao $installerName,\nLo stato della tua opportunity è stato aggiornato.\n" .
+        'Codice: ' . $code . "\n" .
+        'Nuovo stato: ' . $statusLabel . "\n" .
+        'Inviato il: ' . strftime('%d/%m/%Y %H:%M');
+
+    send_resend_email($installerEmail, $subject, $html, $text);
 }
 
 function get_flash(): ?array

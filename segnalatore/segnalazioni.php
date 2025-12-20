@@ -52,20 +52,22 @@ $name = $parts[0] . ' ' . (isset($parts[1]) ? substr($parts[1], 0, 1) . '.' : ''
 <?php endif; ?>
 
 <?php foreach ($opportunities as $opp): ?>
-    <div class="card-soft p-3 mb-2">
-        <div class="d-flex justify-content-between align-items-start">
-            <div>
-                <div class="fw-bold"><?php echo sanitize($opp['first_name'] . ' ' . $opp['last_name']); ?></div>
-                <div class="text-muted small"><?php echo sanitize($opp['offer_name']); ?> · <?php echo sanitize($opp['manager_name']); ?></div>
-                <div class="small text-muted">Stato: <?php echo sanitize($opp['status']); ?></div>
-                <div class="small text-muted">Codice: <?php echo sanitize($opp['opportunity_code']); ?></div>
-                <div class="small text-muted">Commissione: € <?php echo number_format((float)$opp['commission'], 2, ',', '.'); ?></div>
-            </div>
-            <div class="text-end">
-                <div class="text-muted small"><?php echo sanitize($opp['created_at']); ?></div>
+    <a href="dettagli.php?id=<?php echo $opp['id']; ?>" class="text-decoration-none">
+        <div class="card-soft p-3 mb-2">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="fw-bold"><?php echo sanitize($opp['first_name'] . ' ' . $opp['last_name']); ?></div>
+                    <div class="text-muted small"><?php echo sanitize($opp['offer_name']); ?> · <?php echo sanitize($opp['manager_name']); ?></div>
+                    <div class="small text-muted">Stato: <?php echo sanitize($opp['status']); ?></div>
+                    <div class="small text-muted">Codice: <?php echo sanitize($opp['opportunity_code']); ?></div>
+                    <div class="small text-muted">Commissione: € <?php echo number_format((float)$opp['commission'], 2, ',', '.'); ?></div>
+                </div>
+                <div class="text-end">
+                    <div class="text-muted small"><?php echo sanitize($opp['created_at']); ?></div>
+                </div>
             </div>
         </div>
-    </div>
+    </a>
 <?php endforeach; ?>
 
 <?php if ($totalPages > 1): ?>

@@ -1,7 +1,18 @@
 self.addEventListener('push', (event) => {
-  const title = 'Nuova opportunity';
-  const body = 'Un installer ha inviato una nuova segnalazione.';
-  const data = { url: '/admin/opportunities.php' };
+  let title = 'Nuova opportunity';
+  let body = 'Un installer ha inviato una nuova segnalazione.';
+  let data = { url: '/admin/opportunities.php' };
+
+  if (event.data) {
+    try {
+      const payload = event.data.json();
+      title = payload.title || title;
+      body = payload.body || body;
+    } catch (e) {
+      // ignore
+    }
+  }
+
   event.waitUntil(
     self.registration.showNotification(title, {
       body,
