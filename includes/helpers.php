@@ -544,15 +544,15 @@ function notify_installer_status_change(int $installerId, string $installerName,
     send_resend_email($installerEmail, $subject, $html, $text);
 }
 
-function send_resend_email($to, string $subject, string $html, ?string $text = null, ?string $from = null): bool
+function send_resend_email($recipient, string $subject, string $html, ?string $text = null, ?string $sender = null): bool
 {
     $apiKey = getenv('RESEND_API_KEY');
     if (!$apiKey) {
         return false;
     }
 
-    $fromAddress = $from ?: (getenv('RESEND_FROM') ?: 'no-reply@example.com');
-    $recipients = is_array($to) ? $to : array_filter(array_map('trim', explode(',', (string)$to)));
+    $fromAddress = $sender ?: (getenv('RESEND_FROM') ?: 'no-reply@example.com');
+    $recipients = is_array($recipient) ? $recipient : array_filter(array_map('trim', explode(',', (string)$recipient)));
     if (empty($recipients)) {
         return false;
     }
