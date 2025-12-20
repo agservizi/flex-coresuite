@@ -555,6 +555,11 @@ function notify_installer_status_change(int $installerId, string $installerName,
     send_resend_email($installerEmail, $subject, $html, $text);
 }
 
+function set_flash(string $type, string $message): void
+{
+    $_SESSION['flash'] = ['type' => $type, 'message' => $message];
+}
+
 function get_flash(): ?array
 {
     $flash = $_SESSION['flash'] ?? null;
