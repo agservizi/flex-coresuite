@@ -59,6 +59,7 @@ $name = $parts[0] . ' ' . (isset($parts[1]) ? substr($parts[1], 0, 1) . '.' : ''
                 <div class="text-muted small"><?php echo sanitize($opp['offer_name']); ?> · <?php echo sanitize($opp['manager_name']); ?></div>
                 <div class="small text-muted">Stato: <?php echo sanitize($opp['status']); ?></div>
                 <div class="small text-muted">Codice: <?php echo sanitize($opp['opportunity_code']); ?></div>
+                <div class="small text-muted">Commissione: € <?php echo number_format((float)$opp['commission'], 2, ',', '.'); ?></div>
             </div>
             <div class="text-end">
                 <div class="text-muted small"><?php echo sanitize($opp['created_at']); ?></div>
