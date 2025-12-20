@@ -265,6 +265,10 @@ function get_opportunities(array $filters = []): array
         $sql .= ' AND g.name = :manager';
         $params['manager'] = $filters['manager'];
     }
+    if (isset($filters['created_by']) && $filters['created_by'] !== '') {
+        $sql .= ' AND o.created_by = :created_by';
+        $params['created_by'] = (int)$filters['created_by'];
+    }
     if (isset($filters['origin']) && $filters['origin'] !== '') {
         if ($filters['origin'] === 'segnalatore') {
             $sql .= ' AND o.notes LIKE :origin_notes';
@@ -326,6 +330,10 @@ function count_opportunities(array $filters = []): int
     if (isset($filters['manager']) && $filters['manager'] !== '') {
         $sql .= ' AND g.name = :manager';
         $params['manager'] = $filters['manager'];
+    }
+    if (isset($filters['created_by']) && $filters['created_by'] !== '') {
+        $sql .= ' AND o.created_by = :created_by';
+        $params['created_by'] = (int)$filters['created_by'];
     }
     if (isset($filters['origin']) && $filters['origin'] !== '') {
         if ($filters['origin'] === 'segnalatore') {

@@ -38,12 +38,14 @@ CREATE TABLE IF NOT EXISTS opportunities (
     manager_id INT UNSIGNED NOT NULL,
     commission DECIMAL(10,2) NOT NULL DEFAULT 0,
     status ENUM('In attesa','OK','KO') NOT NULL DEFAULT 'In attesa',
-    installer_id INT UNSIGNED NOT NULL,
+    installer_id INT UNSIGNED NULL,
+    created_by INT UNSIGNED NULL,
     month TINYINT UNSIGNED NOT NULL,
     created_at DATE NOT NULL,
     CONSTRAINT fk_opportunities_offer FOREIGN KEY (offer_id) REFERENCES offers(id),
     CONSTRAINT fk_opportunities_manager FOREIGN KEY (manager_id) REFERENCES gestori(id),
-    CONSTRAINT fk_opportunities_installer FOREIGN KEY (installer_id) REFERENCES users(id)
+    CONSTRAINT fk_opportunities_installer FOREIGN KEY (installer_id) REFERENCES users(id),
+    CONSTRAINT fk_opportunities_created_by FOREIGN KEY (created_by) REFERENCES users(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS segnalazioni (

@@ -56,9 +56,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             if (!$error) {
-                $notes = 'Da segnalatore - IBAN: ' . $iban;
+                $notes = 'Da segnalatore';
+                if (!empty($iban)) {
+                    $notes .= ' - IBAN: ' . $iban;
+                }
+                $notes .= ' - Documenti caricati: ' . count($uploadedFiles);
                 if (!empty($uploadedFiles)) {
-                    $notes .= ' - Documenti caricati: ' . count($uploadedFiles);
                     $fileData = json_encode($uploadedFiles);
                 } else {
                     $fileData = null;
