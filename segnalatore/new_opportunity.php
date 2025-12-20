@@ -72,7 +72,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         'first_name' => $first,
                         'last_name' => $last,
                         'offer_id' => $offerId,
-                        'commission' => 0,
                         'notes' => $notes,
                         'created_by' => (int)$user['id'],
                     ]);
