@@ -345,14 +345,16 @@ function get_fcm_access_token(): ?string
 
     return $data['access_token'] ?? null;
 }
+
+function send_resend_email($recipient, string $subject, string $html, ?string $text = null, ?string $sender = null): bool
 {
     $apiKey = getenv('RESEND_API_KEY');
     if (!$apiKey) {
         return false;
     }
 
-    $fromAddress = $from ?: (getenv('RESEND_FROM') ?: 'no-reply@example.com');
-    $recipients = is_array($to) ? $to : array_filter(array_map('trim', explode(',', (string)$to)));
+    $fromAddress = $sender ?: (getenv('RESEND_FROM') ?: 'no-reply@example.com');
+    $recipients = is_array($recipient) ? $recipient : array_filter(array_map('trim', explode(',', (string)$recipient)));
     if (empty($recipients)) {
         return false;
     }
@@ -542,49 +544,4 @@ function notify_installer_status_change(int $installerId, string $installerName,
         . 'Aggiornato il: ' . strftime('%d/%m/%Y %H:%M');
 
     send_resend_email($installerEmail, $subject, $html, $text);
-}
-
-function send_resend_email($recipient, string $subject, string $html, ?string $text = null, ?string $sender = null): bool
-{
-    $apiKey = getenv('RESEND_API_KEY');
-    if (!$apiKey) {
-        return false;
-    }
-
-    $fromAddress = $sender ?: (getenv('RESEND_FROM') ?: 'no-reply@example.com');
-    $recipients = is_array($recipient) ? $recipient : array_filter(array_map('trim', explode(',', (string)$recipient)));
-    if (empty($recipients)) {
-        return false;
-    }
-
-    $payload = [
-        'from' => $fromAddress,
-        'to' => $recipients,
-        'subject' => $subject,
-        'html' => $html,
-    ];
-    if ($text) {
-        $payload['text'] = $text;
-    }
-
-    $ch = curl_init('https://api.resend.com/emails');
-    curl_setopt_array($ch, [
-        CURLOPT_POST => true,
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_HTTPHEADER => [
-            'Authorization: Bearer ' . $apiKey,
-            'Content-Type: application/json',
-        ],
-        CURLOPT_POSTFIELDS => json_encode($payload),
-        CURLOPT_TIMEOUT => 10,
-    ]);
-
-    $result = curl_exec($ch);
-    if ($result === false) {
-        curl_close($ch);
-        return false;
-    }
-    $status = (int)curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
-    curl_close($ch);
-    return $status >= 200 && $status < 300;
 }
