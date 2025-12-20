@@ -204,9 +204,47 @@ function send_push_notification(array $subscriptions, string $title, string $bod
 
     // Send native push via FCM
     if (!empty($nativeSubs)) {
-        $fcmKey = getenv('FCM_SERVER_KEY');
-        if ($fcmKey) {
-            error_log('FCM key found, sending to ' . count($nativeSubs) . ' tokens');
+        $projectId = getenv('FCM_PROJECT_ID');
+        $accessToken = get_fcm_access_token();
+        if ($projectId && $accessToken) {
+            error_log('FCM v1 access token obtained, sending to ' . count($nativeSubs) . ' tokens');
+            foreach ($nativeSubs as $sub) {
+                $token = $sub['token'] ?? '';
+                if (!$token) continue;
+
+                try {
+                    $payload = [
+                        'message' => [
+                            'token' => $token,
+                            'notification' => [
+                                'title' => $title,
+                                'body' => $body,
+                            ],
+                        ],
+                    ];
+
+                    $ch = curl_init('https://fcm.googleapis.com/v1/projects/' . $projectId . '/messages:send');
+                    curl_setopt_array($ch, [
+                        CURLOPT_POST => true,
+                        CURLOPT_HTTPHEADER => [
+                            'Authorization: Bearer ' . $accessToken,
+                            'Content-Type: application/json',
+                        ],
+                        CURLOPT_RETURNTRANSFER => true,
+                        CURLOPT_TIMEOUT => 10,
+                        CURLOPT_POSTFIELDS => json_encode($payload),
+                    ]);
+                    $result = curl_exec($ch);
+                    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                    curl_close($ch);
+                    error_log('FCM v1 push sent to ' . substr($token, 0, 20) . '... , response: ' . $httpCode . ' ' . substr($result, 0, 100));
+                } catch (Throwable $e) {
+                    error_log('FCM v1 push failed: ' . $e->getMessage());
+                }
+            }
+        } elseif ($fcmKey = getenv('FCM_SERVER_KEY')) {
+            // Fallback to legacy API
+            error_log('FCM legacy key found, sending to ' . count($nativeSubs) . ' tokens');
             foreach ($nativeSubs as $sub) {
                 $token = $sub['token'] ?? '';
                 if (!$token) continue;
@@ -234,18 +272,79 @@ function send_push_notification(array $subscriptions, string $title, string $bod
                     $result = curl_exec($ch);
                     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
                     curl_close($ch);
-                    error_log('FCM push sent to ' . substr($token, 0, 20) . '... , response: ' . $httpCode . ' ' . substr($result, 0, 100));
+                    error_log('FCM legacy push sent to ' . substr($token, 0, 20) . '... , response: ' . $httpCode . ' ' . substr($result, 0, 100));
                 } catch (Throwable $e) {
-                    error_log('FCM push failed: ' . $e->getMessage());
+                    error_log('FCM legacy push failed: ' . $e->getMessage());
                 }
             }
         } else {
-            error_log('FCM_SERVER_KEY missing');
+            error_log('No FCM credentials found');
         }
     }
 }
 
-function send_resend_email($to, string $subject, string $html, ?string $text = null, ?string $from = null): bool
+function get_fcm_access_token(): ?string
+{
+    $serviceAccountJson = getenv('FCM_SERVICE_ACCOUNT_KEY');
+    if (!$serviceAccountJson) {
+        return null;
+    }
+
+    $serviceAccount = json_decode($serviceAccountJson, true);
+    if (!$serviceAccount || !isset($serviceAccount['private_key'], $serviceAccount['client_email'])) {
+        return null;
+    }
+
+    $privateKey = $serviceAccount['private_key'];
+    $clientEmail = $serviceAccount['client_email'];
+    $projectId = getenv('FCM_PROJECT_ID');
+    if (!$projectId) {
+        return null;
+    }
+
+    $now = time();
+    $jwtHeader = json_encode(['alg' => 'RS256', 'typ' => 'JWT']);
+    $jwtPayload = json_encode([
+        'iss' => $clientEmail,
+        'scope' => 'https://www.googleapis.com/auth/firebase.messaging',
+        'aud' => 'https://oauth2.googleapis.com/token',
+        'exp' => $now + 3600,
+        'iat' => $now,
+    ]);
+
+    $headerEncoded = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($jwtHeader));
+    $payloadEncoded = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($jwtPayload));
+    $data = $headerEncoded . '.' . $payloadEncoded;
+
+    $signature = '';
+    openssl_sign($data, $signature, $privateKey, 'SHA256');
+    $signatureEncoded = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($signature));
+
+    $jwt = $data . '.' . $signatureEncoded;
+
+    $ch = curl_init('https://oauth2.googleapis.com/token');
+    curl_setopt_array($ch, [
+        CURLOPT_POST => true,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_HTTPHEADER => ['Content-Type: application/x-www-form-urlencoded'],
+        CURLOPT_POSTFIELDS => http_build_query([
+            'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+            'assertion' => $jwt,
+        ]),
+        CURLOPT_TIMEOUT => 10,
+    ]);
+
+    $result = curl_exec($ch);
+    if ($result === false) {
+        curl_close($ch);
+        return null;
+    }
+
+    $data = json_decode($result, true);
+    curl_close($ch);
+
+    return $data['access_token'] ?? null;
+}
 {
     $apiKey = getenv('RESEND_API_KEY');
     if (!$apiKey) {
@@ -443,4 +542,49 @@ function notify_installer_status_change(int $installerId, string $installerName,
         . 'Aggiornato il: ' . strftime('%d/%m/%Y %H:%M');
 
     send_resend_email($installerEmail, $subject, $html, $text);
+}
+
+function send_resend_email($to, string $subject, string $html, ?string $text = null, ?string $from = null): bool
+{
+    $apiKey = getenv('RESEND_API_KEY');
+    if (!$apiKey) {
+        return false;
+    }
+
+    $fromAddress = $from ?: (getenv('RESEND_FROM') ?: 'no-reply@example.com');
+    $recipients = is_array($to) ? $to : array_filter(array_map('trim', explode(',', (string)$to)));
+    if (empty($recipients)) {
+        return false;
+    }
+
+    $payload = [
+        'from' => $fromAddress,
+        'to' => $recipients,
+        'subject' => $subject,
+        'html' => $html,
+    ];
+    if ($text) {
+        $payload['text'] = $text;
+    }
+
+    $ch = curl_init('https://api.resend.com/emails');
+    curl_setopt_array($ch, [
+        CURLOPT_POST => true,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_HTTPHEADER => [
+            'Authorization: Bearer ' . $apiKey,
+            'Content-Type: application/json',
+        ],
+        CURLOPT_POSTFIELDS => json_encode($payload),
+        CURLOPT_TIMEOUT => 10,
+    ]);
+
+    $result = curl_exec($ch);
+    if ($result === false) {
+        curl_close($ch);
+        return false;
+    }
+    $status = (int)curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+    curl_close($ch);
+    return $status >= 200 && $status < 300;
 }
