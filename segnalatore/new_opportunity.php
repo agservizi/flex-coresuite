@@ -58,7 +58,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!$error) {
                 $notes = 'Da segnalatore - IBAN: ' . $iban;
                 if (!empty($uploadedFiles)) {
-                    $notes .= ' - Documenti: ' . implode(', ', $uploadedFiles);
+                    $notes .= ' - Documenti caricati: ' . count($uploadedFiles);
+                    $fileData = json_encode($uploadedFiles);
+                } else {
+                    $fileData = null;
                 }
 
                 try {
@@ -70,6 +73,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         'notes' => $notes,
                         'created_by' => (int)$user['id'],
                     ]);
+
+                    // Salva i file se presenti
+                    if ($fileData) {
+                        $pdo = db();
+                        $pdo->prepare('UPDATE opportunities SET notes = CONCAT(notes, ?) WHERE id = ?')
+                            ->execute(['|' . $fileData, $opp['id']]);
+                    }
+
                     $message = 'Opportunity creata (#' . $opp['opportunity_code'] . ')';
 
                     // Notifica admin

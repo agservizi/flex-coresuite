@@ -116,7 +116,23 @@ include __DIR__ . '/../includes/layout/header.php';
                     <div class="small text-muted">Segnalatore: <?php echo sanitize($op['segnalatore_name']); ?></div>
                 <?php endif; ?>
                 <?php if (!empty($op['notes'])): ?>
-                    <div class="small text-muted">Note: <?php echo sanitize($op['notes']); ?></div>
+                    <?php
+                    $notes = $op['notes'];
+                    $fileLinks = '';
+                    if (strpos($notes, '|') !== false) {
+                        list($text, $json) = explode('|', $notes, 2);
+                        $fileData = json_decode($json, true);
+                        if ($fileData) {
+                            $fileLinks = '<br>Documenti: ';
+                            foreach ($fileData as $idx => $filePath) {
+                                $fileName = basename($filePath);
+                                $fileLinks .= '<a href="/download.php?type=opportunity&id=' . $op['id'] . '&index=' . $idx . '" target="_blank">' . sanitize($fileName) . '</a> ';
+                            }
+                        }
+                        $notes = $text;
+                    }
+                    ?>
+                    <div class="small text-muted">Note: <?php echo sanitize($notes) . $fileLinks; ?></div>
                 <?php endif; ?>
                 <?php if (!empty($op['phone'])): ?>
                     <div class="small text-muted">Cellulare: <?php echo sanitize($op['phone']); ?></div>

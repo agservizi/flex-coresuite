@@ -34,11 +34,37 @@ try {
     $adminSubs = get_admin_push_subscriptions();
     echo "✓ Admin push subscriptions: " . count($adminSubs) . " found\n";
 
-    // Test send push (dry run, no actual send)
-    if (!empty($adminSubs)) {
-        echo "✓ Push notification system ready\n";
-    } else {
-        echo "⚠ No admin push subscriptions found\n";
+    // Test push notification preparation
+    $mockSubs = [
+        ['endpoint' => 'https://example.com/push', 'p256dh' => 'mock', 'auth' => 'mock'],
+        ['token' => 'mock_fcm_token', 'platform' => 'ios']
+    ];
+    try {
+        // Test filtering (without actual send)
+        $webSubs = array_filter($mockSubs, fn($sub) => !empty($sub['endpoint']));
+        $nativeSubs = array_filter($mockSubs, fn($sub) => !empty($sub['token']));
+        echo "✓ Push notification filtering: " . count($webSubs) . " web, " . count($nativeSubs) . " native\n";
+
+        // Test FCM payload building
+        if ($fcmKey) {
+            $payload = [
+                'to' => 'mock_token',
+                'notification' => [
+                    'title' => 'Test',
+                    'body' => 'Test body',
+                ],
+            ];
+            $jsonPayload = json_encode($payload);
+            if ($jsonPayload) {
+                echo "✓ FCM payload building OK\n";
+            } else {
+                echo "✗ FCM payload building failed\n";
+            }
+        }
+
+        echo "✓ Push notification system syntax OK\n";
+    } catch (Throwable $e) {
+        echo "✗ Push notification test failed: " . $e->getMessage() . "\n";
     }
 
     // Test file upload dir

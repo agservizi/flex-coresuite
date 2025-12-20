@@ -418,6 +418,19 @@ function add_opportunity(array $data): array
 
 }
 
+function get_opportunity(int $id): ?array
+{
+    $stmt = db()->prepare('SELECT o.*, off.name AS offer_name, g.name AS manager_name, u.name AS installer_name
+                           FROM opportunities o
+                           JOIN offers off ON o.offer_id = off.id
+                           JOIN gestori g ON o.manager_id = g.id
+                           JOIN users u ON o.installer_id = u.id
+                           WHERE o.id = :id');
+    $stmt->execute(['id' => $id]);
+    $row = $stmt->fetch();
+    return $row ?: null;
+}
+
 function update_opportunity_status(int $id, string $status, int $changedBy): array
 {
     seed_data();

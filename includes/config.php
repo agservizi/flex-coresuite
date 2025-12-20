@@ -19,6 +19,7 @@ define('DB_PASS', getenv('DB_PASS') ?: 'flex_pass');
 
 define('DEFAULT_TIMEZONE', getenv('DEFAULT_TIMEZONE') ?: 'Europe/Rome');
 
-date_default_timezone_set(DEFAULT_TIMEZONE);
-
+// Upload directory
 define('UPLOAD_DIR', getenv('UPLOAD_DIR') ?: (__DIR__ . '/../uploads'));
+
+date_default_timezone_set(DEFAULT_TIMEZONE);
