@@ -66,6 +66,9 @@ $pageTitle = $pageTitle ?? APP_NAME;
     </div>
     <main class="app-main">
         <div class="container-fluid px-3 py-3">
+    <?php $flash = get_flash(); if ($flash): ?>
+        <div data-flash data-type="<?php echo $flash['type']; ?>" data-title="<?php echo ucfirst($flash['type']); ?>" data-flash="<?php echo sanitize($flash['message']); ?>"></div>
+    <?php endif; ?>
     <div class="sheet-backdrop" data-sheet-select-backdrop></div>
     <div class="sheet" data-sheet-select>
         <div class="sheet-handle"></div>

@@ -74,7 +74,7 @@ function summarize(array $ops): array
 
 function get_opportunity_install_info(int $id): ?array
 {
-    $stmt = db()->prepare('SELECT o.id, o.opportunity_code, o.installer_id, u.name AS installer_name FROM opportunities o JOIN users u ON o.installer_id = u.id WHERE o.id = :id LIMIT 1');
+    $stmt = db()->prepare('SELECT o.id, o.opportunity_code, o.installer_id, u.name AS installer_name, u.email AS installer_email FROM opportunities o JOIN users u ON o.installer_id = u.id WHERE o.id = :id LIMIT 1');
     $stmt->execute(['id' => $id]);
     $row = $stmt->fetch();
     return $row ?: null;
@@ -521,27 +521,14 @@ function notify_segnalatore_credentials(string $name, string $email, string $tok
     send_resend_email($email, $subject, $html, $text);
 }
 
-function notify_installer_status_change(int $installerId, string $installerName, string $installerEmail, string $opCode, string $newStatus): void
+function set_flash(string $type, string $message): void
 {
-    if (!$installerEmail) {
-        return;
-    }
+    $_SESSION['flash'] = ['type' => $type, 'message' => $message];
+}
 
-    $subject = 'Aggiornamento opportunity ' . $opCode . ' - ' . $newStatus;
-    $body = '<p>Ciao ' . htmlspecialchars($installerName ?: 'Installer') . ',</p>'
-        . '<p>Lo stato della tua opportunity è stato aggiornato a <strong>' . htmlspecialchars($newStatus) . '</strong>.</p>'
-        . '<table style="border-collapse:collapse;width:100%;font-size:14px;">'
-        . '<tr><td style="padding:6px 0;color:#6c757d;">Codice</td><td style="padding:6px 0;font-weight:600;">' . htmlspecialchars($opCode) . '</td></tr>'
-        . '<tr><td style="padding:6px 0;color:#6c757d;">Stato</td><td style="padding:6px 0;font-weight:600;">' . htmlspecialchars($newStatus) . '</td></tr>'
-        . '</table>'
-        . '<p style="color:#6c757d;font-size:13px;">Aggiornato il ' . strftime('%d/%m/%Y %H:%M') . '.</p>';
-
-    $html = render_email_wrapper('Opportunity aggiornata', $body, null, null, APP_NAME . ' · ' . (getenv('COMPANY_NAME') ?: ''));
-
-    $text = "Ciao $installerName,\n"
-        . 'Stato aggiornato a: ' . $newStatus . "\n"
-        . 'Codice: ' . $opCode . "\n"
-        . 'Aggiornato il: ' . strftime('%d/%m/%Y %H:%M');
-
-    send_resend_email($installerEmail, $subject, $html, $text);
+function get_flash(): ?array
+{
+    $flash = $_SESSION['flash'] ?? null;
+    unset($_SESSION['flash']);
+    return $flash;
 }
