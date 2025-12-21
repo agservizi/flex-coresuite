@@ -50,6 +50,11 @@ include __DIR__ . '/../includes/layout/header.php';
 </form>
 
 <div class="card-soft p-3 mb-3">
+    <h3 class="h6 fw-bold mb-3">Distribuzione stati</h3>
+    <canvas id="statusChart" width="400" height="200"></canvas>
+</div>
+
+<div class="card-soft p-3 mb-3">
     <div class="row g-2">
         <div class="col-6">
             <div class="stat-chip">
@@ -84,6 +89,11 @@ include __DIR__ . '/../includes/layout/header.php';
     </div>
 </div>
 
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div></div>
+    <button id="exportCsv" class="btn btn-outline-primary btn-sm">Esporta CSV</button>
+</div>
+
 <h2 class="h6 fw-bold">Dettagli</h2>
 <?php foreach ($opportunities as $opp): ?>
     <div class="card-soft p-3 mb-2">
@@ -104,4 +114,71 @@ include __DIR__ . '/../includes/layout/header.php';
 <?php if (empty($opportunities)): ?>
     <div class="alert alert-info">Nessuna opportunity trovata.</div>
 <?php endif; ?>
+
+<script>
+const statusData = {
+    labels: ['OK', 'In attesa', 'KO'],
+    datasets: [{
+        data: [<?php echo $summary['ok']; ?>, <?php echo $summary['pending']; ?>, <?php echo $summary['ko']; ?>],
+        backgroundColor: [
+            'rgba(40, 167, 69, 0.8)',
+            'rgba(255, 193, 7, 0.8)',
+            'rgba(220, 53, 69, 0.8)'
+        ],
+        borderColor: [
+            'rgba(40, 167, 69, 1)',
+            'rgba(255, 193, 7, 1)',
+            'rgba(220, 53, 69, 1)'
+        ],
+        borderWidth: 1
+    }]
+};
+
+const ctx = document.getElementById('statusChart').getContext('2d');
+new Chart(ctx, {
+    type: 'pie',
+    data: statusData,
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'bottom',
+            }
+        }
+    }
+});
+</script>
+
+<script>
+document.getElementById('exportCsv').addEventListener('click', function() {
+    const data = [
+        ['Nome', 'Offerta', 'Manager', 'Codice', 'Stato', 'Provvigione']
+    ];
+    <?php foreach ($opportunities as $opp): ?>
+        data.push([
+            '<?php echo addslashes($opp['first_name'] . ' ' . $opp['last_name']); ?>',
+            '<?php echo addslashes($opp['offer_name']); ?>',
+            '<?php echo addslashes($opp['manager_name']); ?>',
+            '<?php echo addslashes($opp['opportunity_code']); ?>',
+            '<?php echo addslashes($opp['status']); ?>',
+            '<?php echo $opp['commission']; ?>'
+        ]);
+    <?php endforeach; ?>
+
+    let csvContent = "data:text/csv;charset=utf-8,";
+    data.forEach(function(rowArray) {
+        let row = rowArray.join(",");
+        csvContent += row + "\r\n";
+    });
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "report_segnalatore.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+});
+</script>
+
 <?php include __DIR__ . '/../includes/layout/footer.php'; ?>
