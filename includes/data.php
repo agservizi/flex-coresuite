@@ -371,17 +371,20 @@ function add_opportunity(array $data): array
     $createdBy = isset($data['created_by']) ? (int)$data['created_by'] : null;
     $offer = null;
     if ($offerId > 0) {
+        log_debug('Fetching offer with id: ' . $offerId);
         $offerStmt = $pdo->prepare('SELECT o.id, o.name, o.commission, o.manager_id, g.name AS manager_name
                                     FROM offers o
                                     JOIN gestori g ON o.manager_id = g.id
                                     WHERE o.id = :id');
         $offerStmt->execute(['id' => $offerId]);
         $offer = $offerStmt->fetch();
+        log_debug('Offer fetched: ' . json_encode($offer));
         if (!$offer) {
             throw new InvalidArgumentException('Offerta non valida');
         }
     } elseif (isset($data['manager_id']) && (int)$data['manager_id'] > 0) {
         // For urgent
+        $offerId = null;
         $offer = [
             'id' => 0,
             'name' => 'Urgente',
@@ -395,6 +398,8 @@ function add_opportunity(array $data): array
 
     $now = new DateTimeImmutable();
     $code = generate_opportunity_code($pdo);
+    log_debug('Generated code: ' . $code);
+    log_debug('Inserting opportunity with offer_id: ' . $offerId . ', installer_id: ' . $installerId);
     $pdo->prepare('INSERT INTO opportunities (opportunity_code, first_name, last_name, notes, offer_id, manager_id, commission, phone, address, city, status, installer_id, created_by, month, created_at)
                    VALUES (:opportunity_code, :first_name, :last_name, :notes, :offer_id, :manager_id, :commission, :phone, :address, :city, :status, :installer_id, :created_by, :month, :created_at)')
         ->execute([

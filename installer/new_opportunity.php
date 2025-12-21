@@ -10,6 +10,7 @@ $message = null;
 $error = null;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    log_debug('POST data: ' . json_encode($_POST));
     if (!verify_csrf()) {
         $error = 'Sessione scaduta, ricarica la pagina.';
     } else {
