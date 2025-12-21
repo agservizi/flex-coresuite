@@ -1,4 +1,9 @@
 document.addEventListener('DOMContentLoaded', () => {
+  // Svuota cache automaticamente per Capacitor
+  if (window.Capacitor && Capacitor.isNativePlatform()) {
+    clearCacheForCapacitor();
+  }
+
   const savedTheme = localStorage.getItem('theme');
   if (savedTheme) {
     document.documentElement.setAttribute('data-bs-theme', savedTheme);
@@ -732,4 +737,35 @@ function setupFormValidation() {
       // Notes is optional
     });
   });
+}
+
+// Svuota cache automaticamente per Capacitor
+async function clearCacheForCapacitor() {
+  try {
+    // Svuota cache del service worker
+    if ('serviceWorker' in navigator) {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      for (const registration of registrations) {
+        await registration.unregister();
+      }
+    }
+
+    // Svuota cache del browser
+    if ('caches' in window) {
+      const cacheNames = await caches.keys();
+      await Promise.all(
+        cacheNames.map(cacheName => caches.delete(cacheName))
+      );
+    }
+
+    // Forza reload delle risorse
+    if (window.location) {
+      // Piccolo delay per permettere la pulizia
+      setTimeout(() => {
+        window.location.reload(true);
+      }, 100);
+    }
+  } catch (error) {
+    console.warn('Errore durante la pulizia della cache:', error);
+  }
 }
