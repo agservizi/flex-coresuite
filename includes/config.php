@@ -2,6 +2,8 @@
 require_once __DIR__ . '/env.php';
 load_env(__DIR__ . '/../.env');
 
+session_start();
+
 // Basic app metadata (env overrideable)
 define('APP_NAME', getenv('APP_NAME') ?: 'Flex');
 define('COMPANY_NAME', getenv('COMPANY_NAME') ?: 'AG SERVIZI VIA PLINIO 72');
