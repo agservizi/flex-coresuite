@@ -47,16 +47,18 @@ function log_push($message) {
     file_put_contents($logFile, date('Y-m-d H:i:s') . ' - ' . $message . "\n", FILE_APPEND);
 }
 
-function month_options(): array
+function time_ago(string $datetime): string
 {
-    $months = [];
-    for ($m = 1; $m <= 12; $m++) {
-        $months[] = [
-            'value' => $m,
-            'label' => sprintf('%02d', $m),
-        ];
-    }
-    return $months;
+    $now = new DateTime();
+    $then = new DateTime($datetime);
+    $diff = $now->diff($then);
+
+    if ($diff->y > 0) return $diff->y . ' anno' . ($diff->y > 1 ? 'i' : '') . ' fa';
+    if ($diff->m > 0) return $diff->m . ' mese' . ($diff->m > 1 ? 'i' : '') . ' fa';
+    if ($diff->d > 0) return $diff->d . ' giorno' . ($diff->d > 1 ? 'i' : '') . ' fa';
+    if ($diff->h > 0) return $diff->h . ' ora' . ($diff->h > 1 ? 'e' : '') . ' fa';
+    if ($diff->i > 0) return $diff->i . ' minuto' . ($diff->i > 1 ? 'i' : '') . ' fa';
+    return 'Ora';
 }
 
 function filter_opportunities(array $options): array
@@ -638,4 +640,16 @@ function get_flash(): ?array
     $flash = $_SESSION['flash'] ?? null;
     unset($_SESSION['flash']);
     return $flash;
+}
+
+function month_options(): array
+{
+    $months = [];
+    for ($m = 1; $m <= 12; $m++) {
+        $months[] = [
+            'value' => $m,
+            'label' => strftime('%B', mktime(0, 0, 0, $m, 1)),
+        ];
+    }
+    return $months;
 }

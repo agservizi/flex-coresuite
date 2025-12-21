@@ -452,6 +452,41 @@ function get_opportunity(int $id): ?array
     return $row ?: null;
 }
 
+function update_opportunity_details(int $id, array $data, int $updatedBy): void
+{
+    seed_data();
+    $pdo = db();
+    $fields = [];
+    $params = ['id' => $id];
+
+    if (isset($data['phone'])) {
+        $fields[] = 'phone = :phone';
+        $params['phone'] = $data['phone'];
+    }
+    if (isset($data['address'])) {
+        $fields[] = 'address = :address';
+        $params['address'] = $data['address'];
+    }
+    if (isset($data['city'])) {
+        $fields[] = 'city = :city';
+        $params['city'] = $data['city'];
+    }
+    if (isset($data['notes'])) {
+        $fields[] = 'notes = :notes';
+        $params['notes'] = $data['notes'];
+    }
+
+    if (empty($fields)) {
+        return;
+    }
+
+    $sql = 'UPDATE opportunities SET ' . implode(', ', $fields) . ' WHERE id = :id';
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+
+    log_debug('Opportunity ' . $id . ' updated by ' . $updatedBy . ': ' . json_encode($data));
+}
+
 function update_opportunity_status(int $id, string $status, int $changedBy): array
 {
     seed_data();

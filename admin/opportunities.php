@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../includes/permissions.php';
 require_role('admin');
 require_once __DIR__ . '/../includes/helpers.php';
+require_once __DIR__ . '/../includes/data.php';
 
 $users = get_users();
 $user = current_user();
