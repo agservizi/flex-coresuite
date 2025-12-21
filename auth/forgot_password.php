@@ -46,42 +46,40 @@ include __DIR__ . '/../includes/layout/header.php';
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-md-6 col-lg-4">
-                <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
-                    <div class="card-body p-4 p-md-5">
-                        <div class="text-center mb-4">
-                            <div class="logo-circle mb-3">
-                                <i class="bi bi-key-fill text-primary" style="font-size: 3rem;"></i>
-                            </div>
-                            <h1 class="h4 fw-bold text-dark mb-1">Reset Password</h1>
-                            <p class="text-muted small">Inserisci la tua email aziendale</p>
+                <div class="login-content">
+                    <div class="text-center mb-4">
+                        <div class="logo-circle mb-3">
+                            <i class="bi bi-key-fill text-primary" style="font-size: 3rem;"></i>
                         </div>
-                        <?php if ($error): ?>
-                            <div class="alert alert-danger py-2 rounded-3" role="alert">
-                                <i class="bi bi-exclamation-triangle-fill me-2"></i><?php echo sanitize($error); ?>
-                            </div>
-                        <?php endif; ?>
-                        <?php if ($success): ?>
-                            <div class="alert alert-success py-2 rounded-3" role="alert">
-                                <i class="bi bi-check-circle-fill me-2"></i><?php echo sanitize($success); ?>
-                            </div>
-                        <?php endif; ?>
-                        <form method="post" novalidate>
-                            <?php echo csrf_field(); ?>
-                            <div class="form-floating mb-3">
-                                <input type="email" class="form-control border-0 bg-light rounded-3" id="email" name="email" placeholder="email" required>
-                                <label for="email" class="text-muted">
-                                    <i class="bi bi-envelope-fill me-2"></i>Email aziendale
-                                </label>
-                            </div>
-                            <button class="btn btn-primary w-100 btn-pill py-2 fw-semibold shadow-sm" type="submit">
-                                <i class="bi bi-send-fill me-2"></i>Invia Link Reset
-                            </button>
-                        </form>
-                        <div class="text-center mt-4">
-                            <a href="/auth/login.php" class="text-primary text-decoration-none">
-                                <i class="bi bi-arrow-left me-1"></i>Torna al Login
-                            </a>
+                        <h1 class="h4 fw-bold text-dark mb-1">Reset Password</h1>
+                        <p class="text-muted small">Inserisci la tua email aziendale</p>
+                    </div>
+                    <?php if ($error): ?>
+                        <div class="alert alert-danger py-2 rounded-3" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i><?php echo sanitize($error); ?>
                         </div>
+                    <?php endif; ?>
+                    <?php if ($success): ?>
+                        <div class="alert alert-success py-2 rounded-3" role="alert">
+                            <i class="bi bi-check-circle-fill me-2"></i><?php echo sanitize($success); ?>
+                        </div>
+                    <?php endif; ?>
+                    <form method="post" novalidate>
+                        <?php echo csrf_field(); ?>
+                        <div class="form-floating mb-3">
+                            <input type="email" class="form-control border-0 bg-light rounded-3" id="email" name="email" placeholder="email" required>
+                            <label for="email" class="text-muted">
+                                <i class="bi bi-envelope-fill me-2"></i>Email aziendale
+                            </label>
+                        </div>
+                        <button class="btn btn-primary w-100 btn-pill py-2 fw-semibold shadow-sm" type="submit">
+                            <i class="bi bi-send-fill me-2"></i>Invia Link Reset
+                        </button>
+                    </form>
+                    <div class="text-center mt-4">
+                        <a href="/auth/login.php" class="text-primary text-decoration-none">
+                            <i class="bi bi-arrow-left me-1"></i>Torna al Login
+                        </a>
                     </div>
                 </div>
             </div>
@@ -116,9 +114,12 @@ html, body {
     box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
 
-.card {
-    backdrop-filter: blur(10px);
+.login-content {
     background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    padding: 2rem;
+    border-radius: 1rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
 
 .form-floating > .form-control:focus {
@@ -137,7 +138,7 @@ html, body {
 }
 
 @media (max-width: 768px) {
-    .card-body {
+    .login-content {
         padding: 2rem !important;
     }
 }
