@@ -54,7 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         . '<tr><td style="padding:6px 0;color:#6c757d;">Cellulare</td><td style="padding:6px 0;">' . htmlspecialchars($phone) . '</td></tr>'
                         . '<tr><td style="padding:6px 0;color:#6c757d;">Indirizzo</td><td style="padding:6px 0;">' . htmlspecialchars("$address, $city") . '</td></tr>'
                         . '</table>'
-                        . '<p style="color:#6c757d;font-size:13px;">Inviato il ' . strftime('%d/%m/%Y %H:%M') . '.</p>';
+                        . '<p style="color:#6c757d;font-size:13px;">Inviato il ' . safe_strftime('dd/MM/yyyy HH:mm') . '.</p>';
 
                     $html = render_email_wrapper('Nuova segnalazione urgente', $body, null, null, APP_NAME . ' · ' . (getenv('COMPANY_NAME') ?: ''));
 
@@ -64,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         . 'Cliente: ' . "$first $last" . "\n"
                         . 'Cellulare: ' . $phone . "\n"
                         . 'Indirizzo: ' . "$address, $city" . "\n"
-                        . 'Inviato il: ' . strftime('%d/%m/%Y %H:%M');
+                        . 'Inviato il: ' . safe_strftime('dd/MM/yyyy HH:mm');
 
                     send_resend_email($installer['email'], $subject, $html, $text);
                 }

@@ -19,7 +19,7 @@ $latest = array_slice($opportunities, 0, 5);
 $trendData = [];
 for ($i = 5; $i >= 0; $i--) {
     $month = date('Y-m', strtotime("-$i months"));
-    $monthName = strftime('%b', strtotime($month . '-01'));
+    $monthName = safe_strftime('MMM', strtotime($month . '-01'));
     $count = count(array_filter($opportunities, function($opp) use ($month) {
         return date('Y-m', strtotime($opp['created_at'])) === $month;
     }));
@@ -56,7 +56,7 @@ $name = $parts[0] . ' ' . (isset($parts[1]) ? substr($parts[1], 0, 1) . '.' : ''
             <div class="bite">Riepilogo</div>
             <h2 class="h5 fw-bold mb-0">Andamento rapido</h2>
         </div>
-        <span class="badge badge-soft"><?php echo strftime('%b %Y'); ?></span>
+        <span class="badge badge-soft"><?php echo safe_strftime('MMM yyyy'); ?></span>
     </div>
     <div class="row g-2">
         <div class="col-6">
@@ -134,7 +134,7 @@ $conversionRate = $summary['total'] > 0 ? round(($summary['ok'] / $summary['tota
                 <div>
                     <div class="fw-bold"><?php echo sanitize($opp['first_name'] . ' ' . $opp['last_name']); ?></div>
                     <div class="text-muted small"><?php echo sanitize($opp['offer_name']); ?></div>
-                    <div class="small text-muted">Creata: <?php echo strftime('%d/%m/%Y', strtotime($opp['created_at'])); ?></div>
+                    <div class="small text-muted">Creata: <?php echo safe_strftime('dd/MM/yyyy', strtotime($opp['created_at'])); ?></div>
                 </div>
                 <div class="text-end">
                     <span class="badge bg-secondary"><?php echo sanitize($opp['status']); ?></span>

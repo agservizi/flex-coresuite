@@ -3,6 +3,12 @@ require_once __DIR__ . '/data.php';
 
 setlocale(LC_TIME, 'it_IT.UTF-8');
 
+function safe_strftime(string $format, ?int $timestamp = null): string {
+    $timestamp = $timestamp ?? time();
+    $formatter = new IntlDateFormatter('it_IT', IntlDateFormatter::NONE, IntlDateFormatter::NONE, null, null, $format);
+    return $formatter->format($timestamp);
+}
+
 function sanitize(?string $value): string
 {
     return htmlspecialchars(trim($value ?? ''), ENT_QUOTES, 'UTF-8');
@@ -522,7 +528,7 @@ function notify_new_opportunity_email(array $op): void
         . '<tr><td style="padding:6px 0;color:#6c757d;">Email installer</td><td style="padding:6px 0;">' . htmlspecialchars((string)($op['installer_email'] ?? '')) . '</td></tr>'
         . '<tr><td style="padding:6px 0;color:#6c757d;">Note</td><td style="padding:6px 0;">' . nl2br(htmlspecialchars((string)($op['notes'] ?? ''))) . '</td></tr>'
         . '</table>'
-        . '<p style="color:#6c757d;font-size:13px;">Inviato il ' . strftime('%d/%m/%Y %H:%M') . '.</p>';
+        . '<p style="color:#6c757d;font-size:13px;">Inviato il ' . safe_strftime('dd/MM/yyyy HH:mm') . '.</p>';
 
     $html = render_email_wrapper('Nuova opportunity', $body, null, null, APP_NAME . ' · ' . (getenv('COMPANY_NAME') ?: ''));
 
@@ -535,7 +541,7 @@ function notify_new_opportunity_email(array $op): void
         'Installer: ' . ($op['installer_name'] ?? '') . "\n" .
         'Email installer: ' . ($op['installer_email'] ?? '') . "\n" .
         'Note: ' . ($op['notes'] ?? '') . "\n" .
-        'Inviato il: ' . strftime('%d/%m/%Y %H:%M');
+        'Inviato il: ' . safe_strftime('dd/MM/yyyy HH:mm');
 
     send_resend_email($to, $subject, $html, $text);
 }
@@ -618,14 +624,14 @@ function notify_installer_status_change(int $installerId, string $installerName,
         . '<tr><td style="padding:6px 0;color:#6c757d;">Codice</td><td style="padding:6px 0;font-weight:600;">' . htmlspecialchars($code) . '</td></tr>'
         . '<tr><td style="padding:6px 0;color:#6c757d;">Nuovo stato</td><td style="padding:6px 0;font-weight:600;">' . htmlspecialchars($statusLabel) . '</td></tr>'
         . '</table>'
-        . '<p style="margin-top:12px;color:#6c757d;font-size:13px;">Inviato il ' . strftime('%d/%m/%Y %H:%M') . '.</p>';
+        . '<p style="margin-top:12px;color:#6c757d;font-size:13px;">Inviato il ' . safe_strftime('dd/MM/yyyy HH:mm') . '.</p>';
 
     $html = render_email_wrapper('Aggiornamento stato opportunity', $body, null, null, APP_NAME . ' · ' . (getenv('COMPANY_NAME') ?: ''));
 
     $text = "Ciao $installerName,\nLo stato della tua opportunity è stato aggiornato.\n" .
         'Codice: ' . $code . "\n" .
         'Nuovo stato: ' . $statusLabel . "\n" .
-        'Inviato il: ' . strftime('%d/%m/%Y %H:%M');
+        'Inviato il: ' . safe_strftime('dd/MM/yyyy HH:mm');
 
     send_resend_email($installerEmail, $subject, $html, $text);
 }
@@ -648,7 +654,7 @@ function month_options(): array
     for ($m = 1; $m <= 12; $m++) {
         $months[] = [
             'value' => $m,
-            'label' => strftime('%B', mktime(0, 0, 0, $m, 1)),
+            'label' => safe_strftime('MMMM', mktime(0, 0, 0, $m, 1)),
         ];
     }
     return $months;

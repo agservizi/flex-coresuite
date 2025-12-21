@@ -12,9 +12,10 @@ $invalid_users = array_filter($users, function($user) {
 
 // Dati per grafico mensile
 $monthlyData = [];
+$formatter = new IntlDateFormatter('it_IT', IntlDateFormatter::NONE, IntlDateFormatter::NONE, null, null, 'MMM yyyy');
 for ($i = 5; $i >= 0; $i--) {
     $month = date('Y-m', strtotime("-$i months"));
-    $monthName = strftime('%b %Y', strtotime($month . '-01'));
+    $monthName = $formatter->format(strtotime($month . '-01'));
     $count = count(array_filter($ops, function($op) use ($month) {
         return date('Y-m', strtotime($op['created_at'])) === $month;
     }));

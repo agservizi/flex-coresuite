@@ -43,7 +43,7 @@ include __DIR__ . '/../includes/layout/header.php';
             <div class="bite">Riepilogo</div>
             <h2 class="h5 fw-bold mb-0">Andamento rapido</h2>
         </div>
-        <span class="badge badge-soft"><?php echo strftime('%b %Y'); ?></span>
+        <span class="badge badge-soft"><?php $formatter = new IntlDateFormatter('it_IT', IntlDateFormatter::NONE, IntlDateFormatter::NONE, null, null, 'MMM yyyy'); echo $formatter->format(time()); ?></span>
     </div>
     <div class="row g-2">
         <div class="col-6">
