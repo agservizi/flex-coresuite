@@ -26,6 +26,9 @@ $bottomNav = '
 ';
 include __DIR__ . '/../includes/layout/header.php';
 ?>
+<?php if (isset($_GET['success'])): ?>
+    <div class="alert alert-success">Segnalazione creata con successo!</div>
+<?php endif; ?>
 <?php
 $user = current_user();
 $parts = explode(' ', $user['name']);

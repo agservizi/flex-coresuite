@@ -23,6 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif (strlen($first) > 120 || strlen($last) > 120 || strlen($notes) > 500) {
             $error = 'Verifica lunghezza dei campi.';
         } else {
+            log_debug('Saving opportunity for installer ' . $user['id'] . ', offer ' . $offerId);
             try {
                 $created = add_opportunity([
                     'first_name' => $first,
@@ -37,6 +38,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $adminSubs = get_admin_push_subscriptions();
                 send_push_notification($adminSubs, 'Nuova opportunity', 'Un installer ha inviato una nuova segnalazione.');
                 $message = 'Opportunity creata con successo';
+                header('Location: /installer/opportunities.php?success=1');
+                exit;
             } catch (Throwable $e) {
                 $error = 'Errore durante il salvataggio. ' . $e->getMessage();
             }

@@ -110,6 +110,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $adminSubs = get_admin_push_subscriptions();
                     send_push_notification($adminSubs, 'Nuova segnalazione', $first . ' ' . $last);
                 error_log('Push notification sent for segnalazione ' . $opp['opportunity_code']);
+                    header('Location: /segnalatore/segnalazioni.php?success=1');
+                    exit;
                 } catch (Throwable $e) {
                     log_debug('Errore salvataggio segnalazione: ' . $e->getMessage());
                     $error = 'Errore: ' . $e->getMessage();
