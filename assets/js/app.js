@@ -306,6 +306,7 @@ function setupOfferPicker() {
       const id = opt.dataset.id || '';
       const text = opt.dataset.label || 'Seleziona offerta';
       select.value = id;
+      console.log('Offer selected, id:', id, 'select.value now:', select.value);
       if ('value' in label) {
         label.value = text;
       } else {
@@ -700,6 +701,7 @@ function setupFormValidation() {
   forms.forEach(form => {
     form.addEventListener('submit', (e) => {
       const offerSelect = form.querySelector('[data-offer-select]');
+      console.log('Form submit, offerSelect value:', offerSelect ? offerSelect.value : 'no select');
       if (offerSelect && !offerSelect.value) {
         e.preventDefault();
         showToast('Seleziona un\'offerta valida.', 'error');
