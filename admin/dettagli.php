@@ -51,10 +51,12 @@ include __DIR__ . '/../includes/layout/header.php';
             <div class="small text-muted">Offerta</div>
             <div class="fw-semibold"><?php echo sanitize($op['offer_name']); ?> · <?php echo sanitize($op['manager_name']); ?></div>
         </div>
+        <?php if ($op['offer_id'] > 0): ?>
         <div class="col-6">
             <div class="small text-muted">Commissione</div>
             <div class="fw-semibold">€ <?php echo number_format((float)$op['commission'], 2, ',', '.'); ?></div>
         </div>
+        <?php endif; ?>
         <div class="col-6">
             <div class="small text-muted">Data creazione</div>
             <div class="fw-semibold"><?php echo sanitize($op['created_at']); ?></div>
