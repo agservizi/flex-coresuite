@@ -30,7 +30,10 @@ function log_debug(string $message): void
 function verify_csrf(): bool
 {
     $sent = $_POST['csrf_token'] ?? '';
-    return is_string($sent) && hash_equals(csrf_token(), $sent);
+    $expected = csrf_token();
+    $result = is_string($sent) && hash_equals($expected, $sent);
+    log_debug('CSRF check: sent=' . $sent . ', expected=' . $expected . ', result=' . ($result ? 'true' : 'false'));
+    return $result;
 }
 
 function verify_csrf_header(): bool

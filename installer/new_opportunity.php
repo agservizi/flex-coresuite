@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $offerId = (int)($_POST['offer_id'] ?? 0);
         $notes = sanitize($_POST['notes'] ?? '');
 
-        if (!$first || !$last || !$offerId || !$notes) {
+        if (!$first || !$last || !$offerId) {
             $error = 'Compila tutti i campi obbligatori.';
         } elseif (strlen($first) > 120 || strlen($last) > 120 || strlen($notes) > 500) {
             $error = 'Verifica lunghezza dei campi.';
@@ -102,7 +102,7 @@ include __DIR__ . '/../includes/layout/header.php';
             <label for="offer_display">Tipologia prodotto</label>
         </div>
         <div class="form-floating mb-3">
-            <textarea class="form-control" placeholder="Note" id="notes" name="notes" style="height:120px;" required></textarea>
+            <textarea class="form-control" placeholder="Note" id="notes" name="notes" style="height:120px;"></textarea>
             <label for="notes">Campo descrittivo</label>
         </div>
         <button class="btn btn-primary w-100 btn-pill">Salva opportunity</button>

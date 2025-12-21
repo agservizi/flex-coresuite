@@ -267,12 +267,17 @@ async function registerPush() {
 }
 
 function setupOfferPicker() {
+  console.log('setupOfferPicker called');
   const trigger = document.querySelector('[data-offer-picker-trigger]');
   const sheet = document.querySelector('[data-offer-picker]');
   const backdrop = document.querySelector('[data-offer-picker-backdrop]');
   const select = document.querySelector('[data-offer-select]');
   const label = document.querySelector('[data-offer-label]');
-  if (!trigger || !sheet || !select || !label) return;
+  if (!trigger || !sheet || !select || !label) {
+    console.log('Missing elements for offer picker');
+    return;
+  }
+  console.log('Offer picker elements found');
 
   // Reset to default
   select.value = '';
@@ -697,17 +702,34 @@ function setupSavedFilters() {
 }
 
 function setupFormValidation() {
+  console.log('setupFormValidation called');
   const forms = document.querySelectorAll('form.needs-validation');
+  console.log('Found forms:', forms.length);
   forms.forEach(form => {
     form.addEventListener('submit', (e) => {
       const offerSelect = form.querySelector('[data-offer-select]');
+      const firstName = form.querySelector('input[name="first_name"]');
+      const lastName = form.querySelector('input[name="last_name"]');
       console.log('Form submit, offerSelect value:', offerSelect ? offerSelect.value : 'no select');
       if (offerSelect && !offerSelect.value) {
         e.preventDefault();
+        alert('Seleziona un\'offerta valida.');
         showToast('Seleziona un\'offerta valida.', 'error');
         return false;
       }
-      // Add more validations if needed
+      if (firstName && !firstName.value.trim()) {
+        e.preventDefault();
+        alert('Inserisci il nome.');
+        showToast('Inserisci il nome.', 'error');
+        return false;
+      }
+      if (lastName && !lastName.value.trim()) {
+        e.preventDefault();
+        alert('Inserisci il cognome.');
+        showToast('Inserisci il cognome.', 'error');
+        return false;
+      }
+      // Notes is optional
     });
   });
 }
