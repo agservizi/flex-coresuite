@@ -21,6 +21,12 @@ function csrf_field(): string
     return '<input type="hidden" name="csrf_token" value="' . csrf_token() . '">';
 }
 
+function log_debug(string $message): void
+{
+    $logFile = __DIR__ . '/../uploads/debug_log.txt';
+    file_put_contents($logFile, date('Y-m-d H:i:s') . ' - ' . $message . "\n", FILE_APPEND);
+}
+
 function verify_csrf(): bool
 {
     $sent = $_POST['csrf_token'] ?? '';

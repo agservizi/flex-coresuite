@@ -3,11 +3,6 @@ require_once __DIR__ . '/../includes/permissions.php';
 require_role('segnalatore');
 require_once __DIR__ . '/../includes/helpers.php';
 
-function log_debug($message) {
-    $logFile = __DIR__ . '/../uploads/debug_log.txt';
-    file_put_contents($logFile, date('Y-m-d H:i:s') . ' - ' . $message . "\n", FILE_APPEND);
-}
-
 $user = current_user();
 log_debug('User loggato in segnalatore: ' . json_encode($user));
 $offers = get_offers();
