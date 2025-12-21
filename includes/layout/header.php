@@ -42,6 +42,18 @@ $pageTitle = $pageTitle ?? APP_NAME;
         </div>
         <?php if (current_user()): ?>
         <div class="d-flex align-items-center gap-2">
+            <!-- Pulsanti Capacitor -->
+            <div class="d-flex gap-1 d-capacitor-only" style="display: none;">
+                <button type="button" class="btn btn-outline-secondary btn-icon" data-camera title="Fotocamera">
+                    <i class="bi bi-camera"></i>
+                </button>
+                <button type="button" class="btn btn-outline-secondary btn-icon" data-geolocation title="Posizione">
+                    <i class="bi bi-geo-alt"></i>
+                </button>
+                <button type="button" class="btn btn-outline-secondary btn-icon" data-share data-share-title="Flex Coresuite" data-share-text="Scopri Flex Coresuite" data-share-url="<?php echo asset_url('/'); ?>" title="Condividi">
+                    <i class="bi bi-share"></i>
+                </button>
+            </div>
             <button type="button" class="btn btn-outline-secondary btn-icon position-relative" data-notification-trigger aria-label="Notifiche">
                 <i class="bi bi-bell"></i>
                 <span class="notif-dot" data-notification-badge></span>

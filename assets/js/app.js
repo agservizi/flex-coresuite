@@ -769,3 +769,356 @@ async function clearCacheForCapacitor() {
     console.warn('Errore durante la pulizia della cache:', error);
   }
 }
+
+// Funzionalità Capacitor avanzate
+async function initializeCapacitorFeatures() {
+  if (!window.Capacitor || !Capacitor.isNativePlatform()) return;
+
+  try {
+    // Inizializza splash screen
+    await setupSplashScreen();
+
+    // Inizializza status bar
+    await setupStatusBar();
+
+    // Richiedi permessi essenziali
+    await requestEssentialPermissions();
+
+    // Setup fotocamera
+    setupCameraIntegration();
+
+    // Setup geolocalizzazione
+    setupGeolocation();
+
+    // Setup condivisione
+    setupShareIntegration();
+
+    // Setup deep linking
+    setupDeepLinking();
+
+    // Setup gestione app
+    setupAppManagement();
+
+    console.log('Capacitor features initialized');
+  } catch (error) {
+    console.warn('Error initializing Capacitor features:', error);
+  }
+}
+
+async function setupSplashScreen() {
+  const { SplashScreen } = Capacitor.Plugins;
+  if (SplashScreen) {
+    await SplashScreen.show({
+      showDuration: 2000,
+      autoHide: true
+    });
+  }
+}
+
+async function setupStatusBar() {
+  const { StatusBar } = Capacitor.Plugins;
+  if (StatusBar) {
+    await StatusBar.setStyle({ style: 'DARK' });
+    await StatusBar.setBackgroundColor({ color: '#667eea' });
+  }
+}
+
+async function requestEssentialPermissions() {
+  const { Geolocation } = Capacitor.Plugins;
+  const { Camera } = Capacitor.Plugins;
+
+  try {
+    // Richiedi permesso geolocalizzazione
+    if (Geolocation) {
+      await Geolocation.requestPermissions();
+    }
+
+    // Richiedi permesso fotocamera
+    if (Camera) {
+      await Camera.requestPermissions();
+    }
+  } catch (error) {
+    console.warn('Error requesting permissions:', error);
+  }
+}
+
+function setupCameraIntegration() {
+  const { Camera } = Capacitor.Plugins;
+  if (!Camera) return;
+
+  // Aggiungi event listener per pulsanti fotocamera (se presenti)
+  document.addEventListener('click', async (e) => {
+    if (e.target.matches('[data-camera]')) {
+      e.preventDefault();
+      try {
+        const image = await Camera.getPhoto({
+          quality: 90,
+          allowEditing: true,
+          resultType: 'uri'
+        });
+
+        // Gestisci l'immagine catturata
+        handleCapturedImage(image);
+      } catch (error) {
+        console.warn('Camera error:', error);
+        showToast('Errore accesso fotocamera', 'error');
+      }
+    }
+  });
+}
+
+function setupGeolocation() {
+  const { Geolocation } = Capacitor.Plugins;
+  if (!Geolocation) return;
+
+  // Funzione per ottenere posizione corrente
+  window.getCurrentPosition = async () => {
+    try {
+      const position = await Geolocation.getCurrentPosition({
+        enableHighAccuracy: true,
+        timeout: 10000
+      });
+
+      return {
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+        accuracy: position.coords.accuracy
+      };
+    } catch (error) {
+      console.warn('Geolocation error:', error);
+      throw error;
+    }
+  };
+
+  // Watch position per aggiornamenti continui
+  window.watchPosition = async (callback) => {
+    try {
+      const watchId = await Geolocation.watchPosition({
+        enableHighAccuracy: true,
+        timeout: 10000
+      }, (position, err) => {
+        if (err) {
+          console.warn('Watch position error:', err);
+          return;
+        }
+
+        callback({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          accuracy: position.coords.accuracy
+        });
+      });
+
+      return watchId;
+    } catch (error) {
+      console.warn('Watch position setup error:', error);
+      throw error;
+    }
+  };
+
+  window.clearPositionWatch = (watchId) => {
+    Geolocation.clearWatch({ id: watchId });
+  };
+}
+
+function setupShareIntegration() {
+  const { Share } = Capacitor.Plugins;
+  if (!Share) return;
+
+  // Funzione globale per condivisione
+  window.shareContent = async (options) => {
+    try {
+      await Share.share(options);
+    } catch (error) {
+      console.warn('Share error:', error);
+      // Fallback: copia negli appunti
+      if (options.text) {
+        navigator.clipboard.writeText(options.text);
+        showToast('Testo copiato negli appunti', 'success');
+      }
+    }
+  };
+
+  // Aggiungi event listener per pulsanti condivisione
+  document.addEventListener('click', async (e) => {
+    if (e.target.matches('[data-share]')) {
+      e.preventDefault();
+      const url = e.target.dataset.shareUrl || window.location.href;
+      const title = e.target.dataset.shareTitle || document.title;
+      const text = e.target.dataset.shareText || '';
+
+      await window.shareContent({
+        title,
+        text,
+        url
+      });
+    }
+
+    // Gestisci pulsante geolocalizzazione
+    if (e.target.matches('[data-geolocation]') || e.target.closest('[data-geolocation]')) {
+      e.preventDefault();
+      try {
+        const position = await window.getCurrentPosition();
+        showToast(`Posizione: ${position.latitude.toFixed(6)}, ${position.longitude.toFixed(6)}`, 'success');
+      } catch (error) {
+        console.warn('Geolocation error:', error);
+        showToast('Errore ottenimento posizione', 'error');
+      }
+    }
+  });
+}
+
+function setupDeepLinking() {
+  const { App } = Capacitor.Plugins;
+  if (!App) return;
+
+  // Gestisci deep links
+  App.addListener('appUrlOpen', (data) => {
+    console.log('App opened with URL:', data.url);
+
+    // Gestisci il deep link
+    handleDeepLink(data.url);
+  });
+
+  // Gestisci stato app
+  App.addListener('appStateChange', (state) => {
+    console.log('App state changed:', state.isActive);
+
+    if (state.isActive) {
+      // App è attiva, ricarica dati se necessario
+      refreshAppData();
+    }
+  });
+
+  // Gestisci back button
+  App.addListener('backButton', () => {
+    // Gestisci navigazione indietro
+    if (window.history.length > 1) {
+      window.history.back();
+    } else {
+      App.exitApp();
+    }
+  });
+}
+
+function setupAppManagement() {
+  const { App } = Capacitor.Plugins;
+  if (!App) return;
+
+  // Ottieni info app
+  window.getAppInfo = async () => {
+    try {
+      const info = await App.getInfo();
+      return info;
+    } catch (error) {
+      console.warn('Error getting app info:', error);
+      return null;
+    }
+  };
+
+  // Ottieni stato app
+  window.getAppState = async () => {
+    try {
+      const state = await App.getState();
+      return state;
+    } catch (error) {
+      console.warn('Error getting app state:', error);
+      return null;
+    }
+  };
+}
+
+// Funzioni di utilità
+function handleCapturedImage(image) {
+  // Implementa gestione immagine catturata
+  console.log('Image captured:', image);
+
+  // Esempio: mostra anteprima
+  const img = document.createElement('img');
+  img.src = image.webPath;
+  img.style.maxWidth = '200px';
+  img.style.maxHeight = '200px';
+
+  // Aggiungi a un container se esiste
+  const container = document.querySelector('#image-preview');
+  if (container) {
+    container.innerHTML = '';
+    container.appendChild(img);
+  }
+
+  showToast('Immagine catturata con successo', 'success');
+}
+
+function handleDeepLink(url) {
+  // Implementa gestione deep link
+  console.log('Handling deep link:', url);
+
+  // Esempio: naviga a una pagina specifica
+  if (url.includes('/opportunities/')) {
+    const opportunityId = url.split('/opportunities/')[1];
+    if (opportunityId) {
+      window.location.href = `/admin/opportunities.php?id=${opportunityId}`;
+    }
+  }
+}
+
+function refreshAppData() {
+  // Implementa refresh dati quando app diventa attiva
+  console.log('Refreshing app data...');
+
+  // Esempio: ricarica notifiche
+  if (typeof setupNotifications === 'function') {
+    setupNotifications();
+  }
+}
+
+// Inizializza tutto al caricamento
+document.addEventListener('DOMContentLoaded', () => {
+  // Svuota cache automaticamente per Capacitor
+  if (window.Capacitor && Capacitor.isNativePlatform()) {
+    clearCacheForCapacitor();
+  }
+
+  const savedTheme = localStorage.getItem('theme');
+  if (savedTheme) {
+    document.documentElement.setAttribute('data-bs-theme', savedTheme);
+  }
+
+  setupSheetSelects();
+  const filterForms = document.querySelectorAll('[data-auto-submit="true"]');
+  filterForms.forEach(form => {
+    form.addEventListener('change', () => form.submit());
+  });
+
+  const themeToggle = document.querySelector('[data-toggle-theme]');
+  if (themeToggle) {
+    themeToggle.addEventListener('click', () => {
+      const html = document.documentElement;
+      const next = html.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-bs-theme', next);
+      try { localStorage.setItem('theme', next); } catch (err) { /* ignore */ }
+    });
+  }
+
+  setupOfferPicker();
+  setupManagerPicker();
+  setupInstallerPicker();
+  setupSavedFilters();
+  setupDocPreviews();
+  setupFormValidation();
+
+  injectToastStack();
+  hydrateFlashMessages();
+
+  registerPush();
+  setupNotifications();
+
+  // Mostra pulsanti Capacitor se su app nativa
+  if (window.Capacitor && Capacitor.isNativePlatform()) {
+    const capacitorButtons = document.querySelectorAll('.d-capacitor-only');
+    capacitorButtons.forEach(el => el.style.display = 'flex');
+  }
+
+  // Inizializza funzionalità Capacitor
+  initializeCapacitorFeatures();
+});
