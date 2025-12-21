@@ -148,23 +148,25 @@ include __DIR__ . '/../includes/layout/header.php';
         <?php endif; ?>
     </div>
 
-    <?php if (!empty($op['notes'])): ?>
-    <div class="mt-3">
-        <div class="small text-muted">Note</div>
-        <div><?php echo nl2br(sanitize($op['notes'])); ?></div>
-    </div>
-    <?php endif; ?>
-
     <?php
     $files = [];
+    $displayNotes = $op['notes'];
     if (strpos($op['notes'], '|') !== false) {
         $parts = explode('|', $op['notes'], 2);
         if (count($parts) === 2) {
+            $displayNotes = trim($parts[0]);
             $json = trim($parts[1]);
             $files = json_decode($json, true) ?: [];
         }
     }
-    if (!empty($files)): ?>
+    if (!empty($displayNotes)): ?>
+    <div class="mt-3">
+        <div class="small text-muted">Note</div>
+        <div><?php echo nl2br(sanitize($displayNotes)); ?></div>
+    </div>
+    <?php endif; ?>
+
+    <?php if (!empty($files)): ?>
     <div class="mt-3">
         <div class="small text-muted">Documenti allegati</div>
         <div class="d-flex flex-wrap gap-2 mt-2">
