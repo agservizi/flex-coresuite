@@ -31,6 +31,7 @@ $pageTitle = $pageTitle ?? APP_NAME;
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css">
     <link rel="stylesheet" href="<?php echo asset_url('/assets/css/style.css'); ?>">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="bg-base text-body">
     <div class="toast-stack" aria-live="polite" aria-atomic="true"></div>
