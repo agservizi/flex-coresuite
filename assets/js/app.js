@@ -1113,12 +1113,6 @@ document.addEventListener('DOMContentLoaded', () => {
   registerPush();
   setupNotifications();
 
-  // Mostra pulsanti Capacitor se su app nativa
-  if (window.Capacitor && Capacitor.isNativePlatform()) {
-    const capacitorButtons = document.querySelectorAll('.d-capacitor-only');
-    capacitorButtons.forEach(el => el.style.display = 'flex');
-  }
-
   // Inizializza funzionalità Capacitor
   initializeCapacitorFeatures();
 });
