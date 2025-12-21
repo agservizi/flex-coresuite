@@ -532,6 +532,38 @@ function log_opportunity_status_change(int $opportunityId, string $oldStatus, st
     ]);
 }
 
+function get_opportunity_audit(int $opportunityId): array
+{
+    $stmt = db()->prepare('SELECT a.old_status, a.new_status, a.changed_at, u.name AS changed_by_name
+                           FROM opportunity_audit a
+                           LEFT JOIN users u ON a.changed_by = u.id
+                           WHERE a.opportunity_id = :id
+                           ORDER BY a.changed_at DESC');
+    $stmt->execute(['id' => $opportunityId]);
+    return $stmt->fetchAll();
+}
+
+function add_opportunity_comment(int $opportunityId, string $comment, int $userId): void
+{
+    $stmt = db()->prepare('INSERT INTO opportunity_comments (opportunity_id, comment, user_id, created_at) VALUES (:opp_id, :comment, :user_id, NOW())');
+    $stmt->execute([
+        'opp_id' => $opportunityId,
+        'comment' => $comment,
+        'user_id' => $userId,
+    ]);
+}
+
+function get_opportunity_comments(int $opportunityId): array
+{
+    $stmt = db()->prepare('SELECT c.comment, c.created_at, u.name AS user_name
+                           FROM opportunity_comments c
+                           LEFT JOIN users u ON c.user_id = u.id
+                           WHERE c.opportunity_id = :id
+                           ORDER BY c.created_at DESC');
+    $stmt->execute(['id' => $opportunityId]);
+    return $stmt->fetchAll();
+}
+
 function generate_opportunity_code(PDO $pdo): string
 {
     $stmt = $pdo->prepare('SELECT COUNT(*) FROM opportunities WHERE opportunity_code = :code');

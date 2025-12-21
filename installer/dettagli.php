@@ -114,6 +114,27 @@ include __DIR__ . '/../includes/layout/header.php';
     <?php endif; ?>
 </div>
 
+<?php $audit = get_opportunity_audit($op['id']); ?>
+<?php if (!empty($audit)): ?>
+<div class="card-soft p-3 mb-3">
+    <div class="bite">Cronologia</div>
+    <div class="list-group list-compact">
+        <?php foreach ($audit as $entry): ?>
+            <div class="list-group-item">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <span class="badge bg-secondary"><?php echo sanitize($entry['old_status']); ?> → <?php echo sanitize($entry['new_status']); ?></span>
+                    </div>
+                    <div class="small text-muted">
+                        <?php echo sanitize($entry['changed_by_name'] ?? 'Sistema'); ?> · <?php echo sanitize($entry['changed_at']); ?>
+                    </div>
+                </div>
+            </div>
+        <?php endforeach; ?>
+    </div>
+</div>
+<?php endif; ?>
+
 <div class="d-grid gap-2">
     <a href="opportunities.php" class="btn btn-outline-secondary">Torna alla lista</a>
 </div>
