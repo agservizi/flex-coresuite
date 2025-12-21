@@ -40,49 +40,51 @@ include __DIR__ . '/../includes/layout/header.php';
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-md-6 col-lg-4">
-                <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
-                    <div class="card-body p-4 p-md-5">
-                        <div class="text-center mb-4">
-                            <div class="logo-circle mb-3">
-                                <i class="bi bi-shield-lock-fill text-primary" style="font-size: 3rem;"></i>
-                            </div>
-                            <h1 class="h4 fw-bold text-dark mb-1">Nuova Password</h1>
-                            <p class="text-muted small">Imposta una nuova password sicura</p>
+                <div class="login-content">
+                    <div class="text-center mb-4">
+                        <div class="logo-circle mb-3">
+                            <i class="bi bi-shield-lock-fill text-primary" style="font-size: 3rem;"></i>
                         </div>
-                        <?php if ($error): ?>
-                            <div class="alert alert-danger py-2 rounded-3" role="alert">
-                                <i class="bi bi-exclamation-triangle-fill me-2"></i><?php echo sanitize($error); ?>
-                            </div>
-                        <?php endif; ?>
-                        <?php if ($success): ?>
-                            <div class="alert alert-success py-2 rounded-3" role="alert">
-                                <i class="bi bi-check-circle-fill me-2"></i><?php echo sanitize($success); ?>
-                            </div>
-                        <?php endif; ?>
-                        <?php if (!$error && !$success): ?>
-                        <form method="post" novalidate>
-                            <?php echo csrf_field(); ?>
-                            <div class="form-floating mb-3">
-                                <input type="password" class="form-control border-0 bg-light rounded-3" id="password" name="password" placeholder="Password" required minlength="8">
-                                <label for="password" class="text-muted">
-                                    <i class="bi bi-lock-fill me-2"></i>Nuova Password
-                                </label>
-                            </div>
-                            <div class="form-floating mb-3">
-                                <input type="password" class="form-control border-0 bg-light rounded-3" id="confirm" name="confirm" placeholder="Conferma Password" required minlength="8">
-                                <label for="confirm" class="text-muted">
-                                    <i class="bi bi-lock-fill me-2"></i>Conferma Password
-                                </label>
-                            </div>
-                            <button class="btn btn-primary w-100 btn-pill py-2 fw-semibold shadow-sm" type="submit">
-                                <i class="bi bi-check-circle-fill me-2"></i>Aggiorna Password
-                            </button>
-                        </form><?php endif; ?>
-                        <div class="text-center mt-4">
-                            <a href="/auth/login.php" class="text-primary text-decoration-none">
-                                <i class="bi bi-arrow-left me-1"></i>Torna al Login
-                            </a>
+                        <h1 class="h4 fw-bold text-dark mb-1">Nuova Password</h1>
+                        <p class="text-muted small">Imposta una nuova password sicura</p>
+                    </div>
+                    <?php if ($error): ?>
+                        <div class="alert alert-danger py-2 rounded-3" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i><?php echo sanitize($error); ?>
                         </div>
+                    <?php endif; ?>
+                    <?php if ($success): ?>
+                        <div class="alert alert-success py-2 rounded-3" role="alert">
+                            <i class="bi bi-check-circle-fill me-2"></i><?php echo sanitize($success); ?>
+                        </div>
+                    <?php elseif ($error): ?>
+                        <div class="alert alert-danger py-2 rounded-3" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i><?php echo sanitize($error); ?>
+                        </div>
+                    <?php else: ?>
+                    <form method="post" novalidate>
+                        <?php echo csrf_field(); ?>
+                        <div class="form-floating mb-3">
+                            <input type="password" class="form-control border-0 bg-light rounded-3" id="password" name="password" placeholder="Password" required minlength="8">
+                            <label for="password" class="text-muted">
+                                <i class="bi bi-lock-fill me-2"></i>Nuova Password
+                            </label>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <input type="password" class="form-control border-0 bg-light rounded-3" id="confirm" name="confirm" placeholder="Conferma Password" required minlength="8">
+                            <label for="confirm" class="text-muted">
+                                <i class="bi bi-lock-fill me-2"></i>Conferma Password
+                            </label>
+                        </div>
+                        <button class="btn btn-primary w-100 btn-pill py-2 fw-semibold shadow-sm" type="submit">
+                            <i class="bi bi-check-circle-fill me-2"></i>Aggiorna Password
+                        </button>
+                    </form>
+                    <?php endif; ?>
+                    <div class="text-center mt-4">
+                        <a href="/auth/login.php" class="text-primary text-decoration-none">
+                            <i class="bi bi-arrow-left me-1"></i>Torna al Login
+                        </a>
                     </div>
                 </div>
             </div>
@@ -117,9 +119,12 @@ html, body {
     box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
 
-.card {
-    backdrop-filter: blur(10px);
+.login-content {
     background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    padding: 2rem;
+    border-radius: 1rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
 
 .form-floating > .form-control:focus {
@@ -138,7 +143,7 @@ html, body {
 }
 
 @media (max-width: 768px) {
-    .card-body {
+    .login-content {
         padding: 2rem !important;
     }
 }
