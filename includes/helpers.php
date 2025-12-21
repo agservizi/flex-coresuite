@@ -27,6 +27,12 @@ function verify_csrf(): bool
     return is_string($sent) && hash_equals(csrf_token(), $sent);
 }
 
+function verify_csrf_header(): bool
+{
+    $sent = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+    return is_string($sent) && hash_equals(csrf_token(), $sent);
+}
+
 function log_push($message) {
     $logFile = __DIR__ . '/../uploads/debug_push_log.txt';
     file_put_contents($logFile, date('Y-m-d H:i:s') . ' - ' . $message . "\n", FILE_APPEND);
