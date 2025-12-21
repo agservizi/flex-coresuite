@@ -50,6 +50,9 @@
     "backgroundColor": "#667eea",
     "allowMixedContent": true,
     "captureInput": true,
-    "webContentsDebuggingEnabled": false
+    "webContentsDebuggingEnabled": true,
+    "webViewCache": {
+      "clearOnStart": true
+    }
   }
 }

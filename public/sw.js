@@ -36,6 +36,11 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+  // Salta service worker per pagine auth (login, registrazione, reset password)
+  if (event.request.url.includes('/auth/')) {
+    return;
+  }
+
   // Gestisci solo richieste GET
   if (event.request.method !== 'GET') return;
 

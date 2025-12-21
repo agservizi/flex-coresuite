@@ -1110,7 +1110,14 @@ document.addEventListener('DOMContentLoaded', () => {
   injectToastStack();
   hydrateFlashMessages();
 
-  registerPush();
+  // Registra service worker solo se NON siamo su Capacitor (per evitare conflitti)
+  if (!window.Capacitor || !Capacitor.isNativePlatform()) {
+    registerPush();
+  } else {
+    // Su Capacitor, gestisci solo le notifiche push native
+    registerPush();
+  }
+
   setupNotifications();
 
   // Inizializza funzionalità Capacitor
