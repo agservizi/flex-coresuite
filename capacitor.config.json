@@ -4,5 +4,11 @@
   "webDir": ".",
   "server": {
     "url": "http://localhost:3000"
+  },
+  "plugins": {
+    "PushNotifications": {
+      "presentationOptions": ["badge", "sound", "alert"],
+      "senderId": "422281537146"
+    }
   }
 }
