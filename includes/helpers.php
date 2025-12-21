@@ -164,44 +164,99 @@ function send_push_notification(array $subscriptions, string $title, string $bod
 
     // Send web push
     if (!empty($webSubs)) {
-        $publicKey = get_vapid_public_key();
-        $privateKey = get_vapid_private_key();
-        if ($publicKey && $privateKey) {
-            $subject = getenv('VAPID_SUBJECT') ?: ('mailto:' . (getenv('RESEND_FROM') ?: 'no-reply@example.com'));
+        $fcmWebSubs = array_filter($webSubs, fn($sub) => str_contains($sub['endpoint'], 'fcm.googleapis.com'));
+        $standardWebSubs = array_filter($webSubs, fn($sub) => !str_contains($sub['endpoint'], 'fcm.googleapis.com'));
 
-            foreach ($webSubs as $sub) {
-                $endpoint = $sub['endpoint'] ?? '';
-                if (!$endpoint) continue;
-                $aud = parse_url($endpoint);
-                if (empty($aud['scheme']) || empty($aud['host'])) continue;
-                $audience = $aud['scheme'] . '://' . $aud['host'] . (!empty($aud['port']) ? ':' . $aud['port'] : '');
+        log_push('fcmWebSubs: ' . count($fcmWebSubs) . ', standardWebSubs: ' . count($standardWebSubs));
 
-                try {
-                    $jwt = build_vapid_jwt($audience, $subject, $privateKey);
-                    $headers = [
-                        'TTL: 60',
-                        'Authorization: WebPush ' . $jwt,
-                        'Crypto-Key: p256ecdsa=' . $publicKey,
-                    ];
+        // Send FCM web push (legacy API)
+        if (!empty($fcmWebSubs)) {
+            $fcmKey = getenv('FCM_SERVER_KEY');
+            if ($fcmKey) {
+                log_push('send_push_notification: sending FCM web push to ' . count($fcmWebSubs) . ' subs');
+                foreach ($fcmWebSubs as $sub) {
+                    $endpoint = $sub['endpoint'] ?? '';
+                    if (!$endpoint) continue;
 
-                    $ch = curl_init($endpoint);
-                    curl_setopt_array($ch, [
-                        CURLOPT_POST => true,
-                        CURLOPT_HTTPHEADER => $headers,
-                        CURLOPT_RETURNTRANSFER => true,
-                        CURLOPT_TIMEOUT => 10,
-                        CURLOPT_POSTFIELDS => json_encode(['title' => $title, 'body' => $body]),
-                    ]);
-                    $result = curl_exec($ch);
-                    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-                    curl_close($ch);
-                    error_log('Web push sent to ' . substr($endpoint, 0, 50) . '... , response: ' . $httpCode . ' ' . substr($result, 0, 100));
-                } catch (Throwable $e) {
-                    error_log('Web push error for ' . substr($endpoint, 0, 50) . ': ' . $e->getMessage());
+                    // Extract registration token from FCM endpoint
+                    $token = str_replace('https://fcm.googleapis.com/fcm/send/', '', $endpoint);
+                    if ($token === $endpoint) continue; // not FCM
+
+                    try {
+                        $payload = [
+                            'to' => $token,
+                            'notification' => [
+                                'title' => $title,
+                                'body' => $body,
+                            ],
+                        ];
+
+                        $ch = curl_init('https://fcm.googleapis.com/fcm/send');
+                        curl_setopt_array($ch, [
+                            CURLOPT_POST => true,
+                            CURLOPT_HTTPHEADER => [
+                                'Authorization: key=' . $fcmKey,
+                                'Content-Type: application/json',
+                            ],
+                            CURLOPT_RETURNTRANSFER => true,
+                            CURLOPT_TIMEOUT => 10,
+                            CURLOPT_POSTFIELDS => json_encode($payload),
+                        ]);
+                        $result = curl_exec($ch);
+                        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                        curl_close($ch);
+                        log_push('FCM web push sent to token ' . substr($token, 0, 20) . '... , response: ' . $httpCode . ' ' . substr($result, 0, 100));
+                    } catch (Throwable $e) {
+                        log_push('FCM web push error for token ' . substr($token, 0, 20) . ': ' . $e->getMessage());
+                    }
                 }
+            } else {
+                log_push('send_push_notification: FCM_SERVER_KEY missing for web push');
             }
-        } else {
-            error_log('send_push_notification: VAPID keys missing');
+        }
+
+        // Send standard web push (VAPID)
+        if (!empty($standardWebSubs)) {
+            $publicKey = get_vapid_public_key();
+            $privateKey = get_vapid_private_key();
+            if ($publicKey && $privateKey) {
+                log_push('send_push_notification: sending VAPID web push to ' . count($standardWebSubs) . ' subs');
+                $subject = getenv('VAPID_SUBJECT') ?: ('mailto:' . (getenv('RESEND_FROM') ?: 'no-reply@example.com'));
+
+                foreach ($standardWebSubs as $sub) {
+                    $endpoint = $sub['endpoint'] ?? '';
+                    if (!$endpoint) continue;
+                    $aud = parse_url($endpoint);
+                    if (empty($aud['scheme']) || empty($aud['host'])) continue;
+                    $audience = $aud['scheme'] . '://' . $aud['host'] . (!empty($aud['port']) ? ':' . $aud['port'] : '');
+
+                    try {
+                        $jwt = build_vapid_jwt($audience, $subject, $privateKey);
+                        $headers = [
+                            'TTL: 60',
+                            'Authorization: WebPush ' . $jwt,
+                            'Crypto-Key: p256ecdsa=' . $publicKey,
+                        ];
+
+                        $ch = curl_init($endpoint);
+                        curl_setopt_array($ch, [
+                            CURLOPT_POST => true,
+                            CURLOPT_HTTPHEADER => $headers,
+                            CURLOPT_RETURNTRANSFER => true,
+                            CURLOPT_TIMEOUT => 10,
+                            CURLOPT_POSTFIELDS => json_encode(['title' => $title, 'body' => $body]),
+                        ]);
+                        $result = curl_exec($ch);
+                        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                        curl_close($ch);
+                        log_push('VAPID web push sent to ' . substr($endpoint, 0, 50) . '... , response: ' . $httpCode . ' ' . substr($result, 0, 100));
+                    } catch (Throwable $e) {
+                        log_push('VAPID web push error for ' . substr($endpoint, 0, 50) . ': ' . $e->getMessage());
+                    }
+                }
+            } else {
+                log_push('send_push_notification: VAPID keys missing');
+            }
         }
     } else {
         error_log('send_push_notification: no web subs');
