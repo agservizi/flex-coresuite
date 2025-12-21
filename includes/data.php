@@ -258,7 +258,7 @@ function get_opportunities(array $filters = []): array
         $params['status'] = $filters['status'];
     }
     if (isset($filters['month']) && $filters['month'] !== '') {
-        $sql .= ' AND o.month = :month';
+        $sql .= ' AND MONTH(o.created_at) = :month';
         $params['month'] = (int)$filters['month'];
     }
     if (isset($filters['year']) && $filters['year'] !== '') {
@@ -328,7 +328,7 @@ function count_opportunities(array $filters = []): int
         $params['status'] = $filters['status'];
     }
     if (isset($filters['month']) && $filters['month'] !== '') {
-        $sql .= ' AND o.month = :month';
+        $sql .= ' AND MONTH(o.created_at) = :month';
         $params['month'] = (int)$filters['month'];
     }
     if (isset($filters['year']) && $filters['year'] !== '') {
