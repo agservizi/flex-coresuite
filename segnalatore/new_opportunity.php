@@ -16,6 +16,10 @@ $error = null;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     log_debug('POST ricevuto per nuova segnalazione da user ' . ($user['id'] ?? 'unknown'));
+    log_debug('POST data count: ' . count($_POST));
+    log_debug('FILES data count: ' . count($_FILES));
+    log_debug('POST data: ' . json_encode($_POST));
+    log_debug('FILES data: ' . json_encode($_FILES));
     if (!verify_csrf()) {
         log_debug('CSRF fallito per user ' . ($user['id'] ?? 'unknown'));
         $error = 'Sessione scaduta, ricarica la pagina.';
@@ -24,9 +28,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $last = sanitize($_POST['last_name'] ?? '');
         $iban = sanitize($_POST['iban'] ?? '');
         $offerId = (int)($_POST['offer_id'] ?? 0);
+        log_debug('Parsed data: first=' . $first . ', last=' . $last . ', iban=' . $iban . ', offerId=' . $offerId);
 
         if (!$first || !$last || !$offerId || empty($_FILES['docs']['name'][0])) {
-            log_debug('Validazione fallita: first=' . $first . ', last=' . $last . ', offerId=' . $offerId . ', docs=' . count($_FILES['docs']['name']));
+            log_debug('Validazione fallita: first=' . $first . ', last=' . $last . ', offerId=' . $offerId . ', docs_count=' . count($_FILES['docs']['name']) . ', docs_name0=' . ($_FILES['docs']['name'][0] ?? 'none'));
             $error = 'Compila tutti i campi obbligatori (nome, cognome, offerta, documenti).';
         } elseif (strlen($first) > 120 || strlen($last) > 120) {
             $error = 'Verifica lunghezza dei campi.';

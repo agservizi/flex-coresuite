@@ -22,12 +22,15 @@ $_POST = [
     'offer_id' => '25', // ID esistente
 ];
 
-// Simula FILES (vuoto per test, ma il codice richiede almeno un file)
+// Simula FILES (crea un file temporaneo per test)
+$tempFile = tempnam(sys_get_temp_dir(), 'test');
+file_put_contents($tempFile, '%PDF-1.4 test content'); // Contenuto PDF fittizio
+echo "Temp file creato: $tempFile\n";
 $_FILES = [
     'docs' => [
         'name' => ['test.pdf'],
         'type' => ['application/pdf'],
-        'tmp_name' => ['/tmp/test.pdf'], // Simula un file esistente
+        'tmp_name' => [$tempFile],
         'error' => [0],
         'size' => [1024]
     ]
@@ -43,8 +46,41 @@ $last = sanitize($_POST['last_name'] ?? '');
 $iban = sanitize($_POST['iban'] ?? '');
 $offerId = (int)($_POST['offer_id'] ?? 0);
 
-// Simula controllo documenti (saltiamo upload per test)
-$hasDocs = !empty($_FILES['docs']['name'][0]);
+// Simula controllo documenti (con upload reale)
+$uploadedFiles = [];
+if (!empty($_FILES['docs']['name'][0])) {
+    $uploadDir = __DIR__ . '/uploads/segnalatore/';
+    if (!is_dir($uploadDir)) {
+        mkdir($uploadDir, 0755, true);
+    }
+    foreach ($_FILES['docs']['tmp_name'] as $key => $tmpName) {
+        if (!empty($tmpName)) {
+            $originalName = $_FILES['docs']['name'][$key];
+            $fileSize = $_FILES['docs']['size'][$key];
+            $fileType = $_FILES['docs']['type'][$key];
+            if ($fileSize > 5 * 1024 * 1024) { // 5MB max
+                $error = 'File troppo grande (max 5MB).';
+                break;
+            }
+            $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf'];
+            if (!in_array($fileType, $allowedTypes)) {
+                $error = 'Tipo file non supportato.';
+                break;
+            }
+            $fileName = uniqid('doc_', true) . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $originalName);
+            $filePath = $uploadDir . $fileName;
+            if (copy($tmpName, $filePath)) { // Usa copy invece di move_uploaded_file per test
+                $uploadedFiles[] = '/uploads/segnalatore/' . $fileName;
+                unlink($tmpName); // Rimuovi temp file
+            } else {
+                $error = 'Errore nel caricamento del file.';
+                break;
+            }
+        }
+    }
+}
+
+$hasDocs = !empty($uploadedFiles);
 
 if (!$first || !$last || !$offerId || !$hasDocs) {
     $error = 'Compila tutti i campi obbligatori (nome, cognome, offerta, documenti).';
@@ -56,8 +92,12 @@ if (!$first || !$last || !$offerId || !$hasDocs) {
     if (!empty($iban)) {
         $notes .= ' - IBAN: ' . $iban;
     }
-    $notes .= ' - Documenti caricati: 1'; // Simula
-    $fileData = json_encode(['/uploads/segnalatore/test.pdf']); // Simula
+    $notes .= ' - Documenti caricati: ' . count($uploadedFiles);
+    if (!empty($uploadedFiles)) {
+        $fileData = json_encode($uploadedFiles);
+    } else {
+        $fileData = null;
+    }
 
     try {
         $opp = add_opportunity([
