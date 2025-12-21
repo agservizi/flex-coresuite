@@ -81,7 +81,7 @@ include __DIR__ . '/../includes/layout/header.php';
                 </form>
                 <?php endif; ?>
                 <div class="text-center mt-4">
-                    <a href="/auth/login.php" class="text-primary text-decoration-none">
+                    <a href="/auth/login.php" class="text-light text-decoration-none fw-semibold">
                         <i class="bi bi-arrow-left me-1"></i>Torna al Login
                     </a>
                 </div>
@@ -122,14 +122,22 @@ html, body {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border: none;
-    transition: transform 0.2s ease;
+    background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(248,249,250,0.9) 100%);
+    border: 2px solid rgba(255,255,255,0.8);
+    color: #333 !important;
+    transition: all 0.3s ease;
 }
 
 .btn-primary:hover {
-    transform: translateY(-1px);
-    background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+    background: linear-gradient(135deg, rgba(255,255,255,1) 0%, rgba(248,249,250,1) 100%);
+    border-color: rgba(255,255,255,1);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+}
+
+a.text-light:hover {
+    opacity: 0.8;
+    text-decoration: underline !important;
 }
 
 @media (max-width: 768px) {
