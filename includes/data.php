@@ -387,7 +387,6 @@ function add_opportunity(array $data): array
 
     $now = new DateTimeImmutable();
     $code = generate_opportunity_code($pdo);
-    $pdo->exec('SET FOREIGN_KEY_CHECKS = 0');
     $pdo->prepare('INSERT INTO opportunities (opportunity_code, first_name, last_name, notes, offer_id, manager_id, commission, phone, address, city, status, installer_id, created_by, month, created_at)
                    VALUES (:opportunity_code, :first_name, :last_name, :notes, :offer_id, :manager_id, :commission, :phone, :address, :city, :status, :installer_id, :created_by, :month, :created_at)')
         ->execute([
@@ -407,7 +406,6 @@ function add_opportunity(array $data): array
             'month' => (int)$now->format('m'),
             'created_at' => $now->format('Y-m-d'),
         ]);
-    $pdo->exec('SET FOREIGN_KEY_CHECKS = 1');
 
     $id = (int)$pdo->lastInsertId();
     return [
