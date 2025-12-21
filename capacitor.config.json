@@ -3,7 +3,7 @@
   "appName": "Flex Coresuite",
   "webDir": ".",
   "server": {
-    "url": "http://localhost:3000"
+    "url": "https://flex.coresuite.it"
   },
   "plugins": {
     "PushNotifications": {
