@@ -44,8 +44,8 @@ include __DIR__ . '/../includes/layout/header.php';
                     <div class="logo-circle mb-3">
                         <i class="bi bi-shield-lock-fill text-primary" style="font-size: 3rem;"></i>
                     </div>
-                    <h1 class="h4 fw-bold text-dark mb-1">Nuova Password</h1>
-                    <p class="text-muted small">Imposta una nuova password sicura</p>
+                    <h1 class="h4 fw-bold text-light mb-1">Nuova Password</h1>
+                    <p class="text-light small">Imposta una nuova password sicura</p>
                 </div>
                 <?php if ($error): ?>
                     <div class="alert alert-danger py-2 rounded-3" role="alert">
@@ -65,13 +65,13 @@ include __DIR__ . '/../includes/layout/header.php';
                     <?php echo csrf_field(); ?>
                     <div class="form-floating mb-3">
                         <input type="password" class="form-control border-0 bg-light rounded-3" id="password" name="password" placeholder="Password" required minlength="8">
-                        <label for="password" class="text-muted">
+                        <label for="password" class="text-light">
                             <i class="bi bi-lock-fill me-2"></i>Nuova Password
                         </label>
                     </div>
                     <div class="form-floating mb-3">
                         <input type="password" class="form-control border-0 bg-light rounded-3" id="confirm" name="confirm" placeholder="Conferma Password" required minlength="8">
-                        <label for="confirm" class="text-muted">
+                        <label for="confirm" class="text-light">
                             <i class="bi bi-lock-fill me-2"></i>Conferma Password
                         </label>
                     </div>

@@ -76,8 +76,8 @@ include __DIR__ . '/../includes/layout/header.php';
                     <div class="logo-circle mb-3">
                         <i class="bi bi-shield-lock-fill text-primary" style="font-size: 3rem;"></i>
                     </div>
-                    <h1 class="h4 fw-bold text-dark mb-1">Accedi a Flex</h1>
-                    <p class="text-muted small"><?php echo COMPANY_NAME; ?> - Coresuite</p>
+                        <h1 class="h4 fw-bold text-light mb-1">Accedi a Flex</h1>
+                        <p class="text-light small"><?php echo COMPANY_NAME; ?> - Coresuite</p>
                 </div>
                 <?php if ($error): ?>
                     <div class="alert alert-danger py-2 rounded-3" role="alert">
@@ -88,20 +88,20 @@ include __DIR__ . '/../includes/layout/header.php';
                     <?php echo csrf_field(); ?>
                     <div class="form-floating mb-3">
                         <input type="email" class="form-control border-0 bg-light rounded-3" id="email" name="email" placeholder="email" value="<?php echo $rememberedEmail; ?>" required>
-                        <label for="email" class="text-muted">
+                        <label for="email" class="text-light">
                             <i class="bi bi-envelope-fill me-2"></i>Email aziendale
                         </label>
                     </div>
                     <div class="form-floating mb-3">
                         <input type="password" class="form-control border-0 bg-light rounded-3" id="password" name="password" placeholder="Password" required>
-                        <label for="password" class="text-muted">
+                        <label for="password" class="text-light">
                             <i class="bi bi-lock-fill me-2"></i>Password
                         </label>
                     </div>
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" value="1" id="remember" name="remember" <?php echo $rememberedEmail ? 'checked' : ''; ?>>
-                            <label class="form-check-label small text-muted" for="remember">Ricorda email</label>
+                            <label class="form-check-label small text-light" for="remember">Ricorda email</label>
                         </div>
                         <a href="/auth/forgot_password.php" class="small text-primary text-decoration-none">Dimenticato?</a>
                     </div>
@@ -110,7 +110,7 @@ include __DIR__ . '/../includes/layout/header.php';
                     </button>
                 </form>
                 <div class="text-center mt-4">
-                    <p class="text-muted small mb-0">© 2025 <?php echo COMPANY_NAME; ?> - Accesso sicuro</p>
+                    <p class="text-light small mb-0">© 2025 <?php echo COMPANY_NAME; ?> - Accesso sicuro</p>
                 </div>
             </div>
         </div>
