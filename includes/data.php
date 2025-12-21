@@ -911,7 +911,9 @@ function create_notification(int $userId, string $title, string $body, string $t
         'body' => $body,
         'type' => $type,
     ]);
-    return (int)$pdo->lastInsertId();
+    $id = (int)$pdo->lastInsertId();
+    error_log('create_notification: created notification ID ' . $id . ' for user ' . $userId . ' - ' . $title);
+    return $id;
 }
 
 function cleanup_old_segnalazioni_uploads(int $days = 30): int

@@ -1,5 +1,10 @@
 # Istruzioni Complete per Configurare Notifiche Push Capacitor
 
+## Log per Debug
+- **Backend**: Controlla `uploads/debug_push_log.txt` per log push.
+- **App**: Console del browser/dispositivo per log Capacitor.
+- **Server**: error_log di PHP per errori FCM/VAPID.
+
 ## 1. Installa il Plugin
 ```bash
 npm install @capacitor/push-notifications
@@ -113,4 +118,4 @@ npx cap run ios
 - Vai su DB produzione, tabella push_subscriptions: dovrebbe avere token.
 - Crea opportunity come segnalatore → Push arriva!
 
-Se problemi, controlla log app e server.
+Se problemi, controlla log app e server (error_log di PHP per backend, console per app).

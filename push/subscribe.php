@@ -31,6 +31,7 @@ try {
             exit;
         }
         save_push_subscription((int)current_user()['id'], '', '', '', $token, $platform);
+        error_log('subscribe.php: saved native token for user ' . current_user()['id'] . ', platform ' . $platform);
         echo json_encode(['ok' => true]);
     } elseif (isset($payload['endpoint'])) {
         // Web push
@@ -45,6 +46,7 @@ try {
         $auth = trim($payload['keys']['auth']);
 
         save_push_subscription((int)current_user()['id'], $endpoint, $p256dh, $auth);
+        error_log('subscribe.php: saved web subscription for user ' . current_user()['id']);
         echo json_encode(['ok' => true]);
     } else {
         http_response_code(422);

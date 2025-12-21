@@ -27,10 +27,9 @@ function verify_csrf(): bool
     return is_string($sent) && hash_equals(csrf_token(), $sent);
 }
 
-function verify_csrf_header(): bool
-{
-    $sent = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
-    return is_string($sent) && hash_equals(csrf_token(), $sent);
+function log_push($message) {
+    $logFile = __DIR__ . '/../uploads/debug_push_log.txt';
+    file_put_contents($logFile, date('Y-m-d H:i:s') . ' - ' . $message . "\n", FILE_APPEND);
 }
 
 function month_options(): array
@@ -154,14 +153,14 @@ function build_vapid_jwt(string $audience, string $subject, string $privateKeyPe
 function send_push_notification(array $subscriptions, string $title, string $body): void
 {
     if (empty($subscriptions)) {
-        error_log('send_push_notification: no subscriptions');
+        log_push('send_push_notification: no subscriptions');
         return;
     }
 
     $webSubs = array_filter($subscriptions, fn($sub) => !empty($sub['endpoint']));
     $nativeSubs = array_filter($subscriptions, fn($sub) => !empty($sub['token']));
 
-    error_log('send_push_notification: ' . count($webSubs) . ' web subs, ' . count($nativeSubs) . ' native subs');
+    log_push('send_push_notification: ' . count($webSubs) . ' web subs, ' . count($nativeSubs) . ' native subs');
 
     // Send web push
     if (!empty($webSubs)) {
@@ -198,10 +197,14 @@ function send_push_notification(array $subscriptions, string $title, string $bod
                     curl_close($ch);
                     error_log('Web push sent to ' . substr($endpoint, 0, 50) . '... , response: ' . $httpCode . ' ' . substr($result, 0, 100));
                 } catch (Throwable $e) {
-                    error_log('Web push failed: ' . $e->getMessage());
+                    error_log('Web push error for ' . substr($endpoint, 0, 50) . ': ' . $e->getMessage());
                 }
             }
+        } else {
+            error_log('send_push_notification: VAPID keys missing');
         }
+    } else {
+        error_log('send_push_notification: no web subs');
     }
 
     // Send native push via FCM
