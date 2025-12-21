@@ -42,7 +42,7 @@ include __DIR__ . '/../includes/layout/header.php';
             <div class="col-md-6 col-lg-4">
                 <div class="text-center mb-4">
                     <div class="logo-circle mb-3">
-                        <i class="bi bi-shield-lock-fill text-dark" style="font-size: 3rem;"></i>
+                        <i class="bi bi-shield-lock-fill text-primary" style="font-size: 3rem;"></i>
                     </div>
                     <h1 class="h4 fw-bold text-light mb-1">Nuova Password</h1>
                     <p class="text-light small">Imposta una nuova password sicura</p>
