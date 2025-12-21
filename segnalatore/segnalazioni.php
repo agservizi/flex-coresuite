@@ -48,55 +48,55 @@ $name = $parts[0] . ' ' . (isset($parts[1]) ? substr($parts[1], 0, 1) . '.' : ''
     </div>
 </form>
 
-<table id="segnalazioniTable" class="table table-striped table-bordered">
-    <thead>
-        <tr>
-            <th>Codice</th>
-            <th>Cliente</th>
-            <th>Offerta</th>
-            <th>Gestore</th>
-            <th>Stato</th>
-            <th>Commissione</th>
-            <th>Data</th>
-            <th>Azioni</th>
-        </tr>
-    </thead>
-    <tbody>
-        <?php foreach ($opportunities as $opp): ?>
-        <tr>
-            <td><?php echo sanitize($opp['opportunity_code']); ?></td>
-            <td><?php echo sanitize($opp['first_name'] . ' ' . $opp['last_name']); ?></td>
-            <td><?php echo sanitize($opp['offer_name']); ?></td>
-            <td><?php echo sanitize($opp['manager_name']); ?></td>
-            <td><?php echo sanitize($opp['status']); ?></td>
-            <td>€ <?php echo number_format((float)$opp['commission'], 2, ',', '.'); ?></td>
-            <td><?php echo strftime('%d/%m/%Y', strtotime($opp['created_at'])); ?></td>
-            <td>
-                <a href="dettagli.php?id=<?php echo $opp['id']; ?>" class="btn btn-sm btn-outline-primary">Dettagli</a>
-            </td>
-        </tr>
-        <?php endforeach; ?>
-    </tbody>
-</table>
+<?php if (empty($opportunities)): ?>
+    <div class="alert alert-info">Nessuna opportunity trovata.</div>
+<?php endif; ?>
+
+<?php foreach ($opportunities as $opp): ?>
+    <a href="dettagli.php?id=<?php echo $opp['id']; ?>" class="text-decoration-none">
+        <div class="card-soft p-3 mb-2">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="fw-bold"><?php echo sanitize($opp['first_name'] . ' ' . $opp['last_name']); ?></div>
+                    <div class="text-muted small"><?php echo sanitize($opp['offer_name']); ?> · <?php echo sanitize($opp['manager_name']); ?></div>
+                    <div class="small text-muted">Stato: <?php echo sanitize($opp['status']); ?></div>
+                    <div class="small text-muted">Codice: <?php echo sanitize($opp['opportunity_code']); ?></div>
+                    <div class="small text-muted">Commissione: € <?php echo number_format((float)$opp['commission'], 2, ',', '.'); ?></div>
+                </div>
+                <div class="text-end">
+                    <div class="text-muted small"><?php echo sanitize($opp['created_at']); ?></div>
+                </div>
+            </div>
+        </div>
+    </a>
+<?php endforeach; ?>
+
+<?php if ($totalPages > 1): ?>
+    <nav aria-label="Paginazione segnalazioni">
+        <ul class="pagination justify-content-center">
+            <?php if ($page > 1): ?>
+                <li class="page-item">
+                    <a class="page-link" href="?page=<?php echo $page - 1; ?><?php echo !empty($search) ? '&search=' . urlencode($search) : ''; ?>">Precedente</a>
+                </li>
+            <?php endif; ?>
+            <?php for ($i = max(1, $page - 2); $i <= min($totalPages, $page + 2); $i++): ?>
+                <li class="page-item <?php echo $i === $page ? 'active' : ''; ?>">
+                    <a class="page-link" href="?page=<?php echo $i; ?><?php echo !empty($search) ? '&search=' . urlencode($search) : ''; ?>"><?php echo $i; ?></a>
+                </li>
+            <?php endfor; ?>
+            <?php if ($page < $totalPages): ?>
+                <li class="page-item">
+                    <a class="page-link" href="?page=<?php echo $page + 1; ?><?php echo !empty($search) ? '&search=' . urlencode($search) : ''; ?>">Successivo</a>
+                </li>
+            <?php endif; ?>
+        </ul>
+    </nav>
+<?php endif; ?>
 
 <?php include __DIR__ . '/../includes/layout/footer.php'; ?>
 
 <script>
-$(document).ready(function() {
-    $('#segnalazioniTable').DataTable({
-        dom: 'Bfrtip',
-        buttons: [
-            {
-                extend: 'csv',
-                text: 'Esporta CSV',
-                className: 'btn btn-outline-primary btn-sm'
-            }
-        ],
-        language: {
-            url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/it-IT.json'
-        },
-        pageLength: 25,
-        order: [[6, 'desc']] // Ordina per data
-    });
+document.addEventListener('DOMContentLoaded', function() {
+    // Rimuovi DataTables, torna alla lista originale
 });
 </script>

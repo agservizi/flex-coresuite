@@ -46,7 +46,11 @@ $baseFilters = [
 ];
 
 $totalOps = count_opportunities($baseFilters);
-$ops = filter_opportunities($baseFilters); // Rimuovo limit e offset per DataTables
+$ops = filter_opportunities($baseFilters + [
+    'limit' => $perPage,
+    'offset' => $offset,
+]);
+$totalPages = max(1, (int)ceil($totalOps / $perPage));
 
 $pageTitle = 'Opportunity';
 $bottomNav = '
@@ -114,59 +118,88 @@ include __DIR__ . '/../includes/layout/header.php';
     </div>
 </form>
 
-<table id="opportunitiesTable" class="table table-striped table-bordered">
-    <thead>
-        <tr>
-            <th><input type="checkbox" id="selectAll"></th>
-            <th>Codice</th>
-            <th>Cliente</th>
-            <th>Offerta</th>
-            <th>Gestore</th>
-            <th>Installer</th>
-            <th>Stato</th>
-            <th>Provvigione</th>
-            <th>Data</th>
-            <th>Azioni</th>
-        </tr>
-    </thead>
-    <tbody>
-        <?php foreach ($ops as $op): ?>
-        <tr>
-            <td><input type="checkbox" class="rowCheckbox" value="<?php echo $op['id']; ?>"></td>
-            <td><?php echo sanitize($op['opportunity_code'] ?? ''); ?></td>
-            <td><?php echo sanitize($op['first_name'] . ' ' . $op['last_name']); ?></td>
-            <td><?php echo sanitize($op['offer_name']); ?></td>
-            <td><?php echo sanitize($op['manager_name']); ?></td>
-            <td><?php echo sanitize($op['installer_name']); ?></td>
-            <td><?php echo sanitize($op['status']); ?></td>
-            <td><?php echo $op['product_type'] == 0 ? 'Urgente' : '€ ' . number_format($op['commission'], 2, ',', '.'); ?></td>
-            <td><?php echo strftime('%d/%m/%Y', strtotime($op['created_at'])); ?></td>
-            <td>
-                <a href="dettagli.php?id=<?php echo $op['id']; ?>" class="btn btn-sm btn-outline-primary">Dettagli</a>
-                <?php if ($op['product_type'] > 0): ?>
-                <form method="post" class="d-inline">
-                    <?php echo csrf_field(); ?>
-                    <input type="hidden" name="op_id" value="<?php echo $op['id']; ?>">
-                    <button name="status" value="<?php echo STATUS_OK; ?>" class="btn btn-sm btn-outline-success">OK</button>
-                    <button name="status" value="<?php echo STATUS_KO; ?>" class="btn btn-sm btn-outline-danger">KO</button>
-                </form>
-                <?php endif; ?>
-            </td>
-        </tr>
-        <?php endforeach; ?>
-    </tbody>
-</table>
-
-<div class="d-none" id="bulkActions">
-    <div class="card-soft p-3 mb-3">
-        <div class="bite">Azioni Bulk</div>
-        <div class="d-flex gap-2">
-            <button id="bulkStatusOk" class="btn btn-outline-success">Imposta OK</button>
-            <button id="bulkStatusKo" class="btn btn-outline-danger">Imposta KO</button>
-            <button id="bulkAssign" class="btn btn-outline-primary">Assegna Installer</button>
+<?php foreach ($ops as $op): ?>
+    <a href="dettagli.php?id=<?php echo $op['id']; ?>" class="text-decoration-none">
+        <div class="card-soft p-3 mb-2">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                    <div class="fw-bold"><?php echo sanitize($op['first_name'] . ' ' . $op['last_name']); ?></div>
+                    <div class="text-muted small"><?php echo sanitize($op['offer_name']); ?> · <?php echo sanitize($op['manager_name']); ?></div>
+                    <div class="small text-muted">Codice: <?php echo sanitize($op['opportunity_code'] ?? ''); ?></div>
+                    <div class="small text-muted">Installer: <?php echo sanitize($op['installer_name']); ?></div>
+                    <?php if (!empty($op['segnalatore_name'])): ?>
+                        <div class="small text-muted">Segnalatore: <?php echo sanitize($op['segnalatore_name']); ?></div>
+                    <?php endif; ?>
+                    <?php if (!empty($op['notes'])): ?>
+                        <?php
+                        $notes = $op['notes'];
+                        $fileLinks = '';
+                        if (strpos($notes, '|') !== false) {
+                            list($text, $json) = explode('|', $notes, 2);
+                            $fileData = json_decode($json, true);
+                            if ($fileData) {
+                                $fileLinks = '<br>Documenti: ';
+                                foreach ($fileData as $idx => $filePath) {
+                                    $fileName = basename($filePath);
+                                    $fileLinks .= '<a href="/download.php?type=opportunity&id=' . $op['id'] . '&index=' . $idx . '" target="_blank">' . sanitize($fileName) . '</a> ';
+                                }
+                            }
+                            $notes = $text;
+                        }
+                        ?>
+                        <div class="small text-muted">Note: <?php echo sanitize($notes) . $fileLinks; ?></div>
+                    <?php endif; ?>
+                    <?php if (!empty($op['phone'])): ?>
+                        <div class="small text-muted">Cellulare: <?php echo sanitize($op['phone']); ?></div>
+                    <?php endif; ?>
+                    <?php if (!empty($op['address'])): ?>
+                        <div class="small text-muted">Indirizzo: <?php echo sanitize($op['address']); ?></div>
+                    <?php endif; ?>
+                    <?php if (!empty($op['city'])): ?>
+                        <div class="small text-muted">Città: <?php echo sanitize($op['city']); ?></div>
+                    <?php endif; ?>
+                </div>
+                <div class="text-end">
+                    <div class="fw-bold"><?php echo $op['product_type'] == 0 ? 'Urgente' : '€ ' . number_format($op['commission'], 2, ',', '.'); ?></div>
+                    <div class="text-muted small"><?php echo strftime('%d %B %Y', strtotime($op['created_at'])); ?></div>
+                </div>
+            </div>
+            <?php if ($op['product_type'] > 0): ?>
+            <form method="post" class="card-action">
+                <?php echo csrf_field(); ?>
+                <input type="hidden" name="op_id" value="<?php echo $op['id']; ?>">
+                <div class="state">Stato attuale: <?php echo sanitize($op['status']); ?></div>
+                <div class="d-flex gap-2">
+                    <button name="status" value="<?php echo STATUS_PENDING; ?>" class="btn btn-outline-secondary btn-sm">In attesa</button>
+                    <button name="status" value="<?php echo STATUS_OK; ?>" class="btn btn-outline-success btn-sm">OK</button>
+                    <button name="status" value="<?php echo STATUS_KO; ?>" class="btn btn-outline-danger btn-sm">KO</button>
+                </div>
+            </form>
+            <?php endif; ?>
         </div>
-    </div>
-</div>
+    </a>
+<?php endforeach; ?>
+
+<?php if (empty($ops)): ?>
+    <div class="alert alert-info">Nessuna opportunity trovata.</div>
+<?php endif; ?>
+
+<?php if ($totalPages > 1): ?>
+    <?php
+        $queryBase = [
+            'installer_id' => $installerId,
+            'status' => $status,
+            'month' => $month,
+            'manager' => $manager,
+            'origin' => $origin,
+        ];
+    ?>
+    <nav class="d-flex justify-content-between align-items-center mt-3">
+        <a class="btn btn-outline-secondary btn-sm <?php echo $page <= 1 ? 'disabled' : ''; ?>" href="/admin/opportunities.php?<?php echo http_build_query($queryBase + ['page' => max(1, $page - 1)]); ?>">Precedente</a>
+        <div class="small text-muted">Pagina <?php echo $page; ?> di <?php echo $totalPages; ?></div>
+        <a class="btn btn-outline-secondary btn-sm <?php echo $page >= $totalPages ? 'disabled' : ''; ?>" href="/admin/opportunities.php?<?php echo http_build_query($queryBase + ['page' => min($totalPages, $page + 1)]); ?>">Successiva</a>
+    </nav>
+<?php endif; ?>
 
 <?php if ($message): ?>
     <div data-flash data-type="success" data-title="OK" data-flash="<?php echo sanitize($message); ?>"></div>
@@ -178,66 +211,7 @@ include __DIR__ . '/../includes/layout/header.php';
 <?php include __DIR__ . '/../includes/layout/footer.php'; ?>
 
 <script>
-$(document).ready(function() {
-    $('#opportunitiesTable').DataTable({
-        dom: 'Bfrtip',
-        buttons: [
-            {
-                extend: 'csv',
-                text: 'Esporta CSV',
-                className: 'btn btn-outline-primary btn-sm'
-            },
-            {
-                extend: 'excel',
-                text: 'Esporta Excel',
-                className: 'btn btn-outline-primary btn-sm'
-            }
-        ],
-        language: {
-            url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/it-IT.json'
-        },
-        pageLength: 25,
-        order: [[8, 'desc']] // Ordina per data decrescente
-    });
-
-    // Checkbox select all
-    $('#selectAll').on('change', function() {
-        $('.rowCheckbox').prop('checked', this.checked);
-        toggleBulkActions();
-    });
-
-    $('.rowCheckbox').on('change', function() {
-        $('#selectAll').prop('checked', $('.rowCheckbox:checked').length === $('.rowCheckbox').length);
-        toggleBulkActions();
-    });
-
-    function toggleBulkActions() {
-        if ($('.rowCheckbox:checked').length > 0) {
-            $('#bulkActions').removeClass('d-none');
-        } else {
-            $('#bulkActions').addClass('d-none');
-        }
-    }
-
-    // Azioni bulk
-    $('#bulkStatusOk').on('click', function() {
-        bulkUpdateStatus('<?php echo STATUS_OK; ?>');
-    });
-
-    $('#bulkStatusKo').on('click', function() {
-        bulkUpdateStatus('<?php echo STATUS_KO; ?>');
-    });
-
-    function bulkUpdateStatus(status) {
-        const selected = $('.rowCheckbox:checked').map(function() { return this.value; }).get();
-        if (selected.length === 0) return;
-
-        if (confirm('Confermi l\'aggiornamento di ' + selected.length + ' opportunity?')) {
-            selected.forEach(id => {
-                $.post('', { op_id: id, status: status, csrf_token: '<?php echo csrf_token(); ?>' });
-            });
-            location.reload();
-        }
-    }
+document.addEventListener('DOMContentLoaded', function() {
+    // Rimuovi DataTables, torna alla lista originale
 });
 </script>
