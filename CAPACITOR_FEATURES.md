@@ -2,6 +2,18 @@
 
 Questo documento descrive le funzionalità avanzate implementate per l'app Capacitor di Flex Coresuite.
 
+## Problema 404 Risolto
+
+**Sintomi**: Pagine `/auth/*` restituivano 404 in Capacitor ma funzionavano nel browser.
+
+**Causa**: Il server web aveva regole di routing che bloccavano l'accesso diretto alle pagine auth.
+
+**Soluzione**: Creato `.htaccess` che permette accesso diretto alle pagine PHP:
+```
+# Allow direct access to auth pages (fixes 404 issues with Capacitor)
+RewriteRule ^auth/(.*\.php)$ - [L]
+```
+
 ## Funzionalità Implementate
 
 ### 🔄 Cache Management

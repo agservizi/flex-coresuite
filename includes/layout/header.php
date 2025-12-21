@@ -42,6 +42,10 @@ $pageTitle = $pageTitle ?? APP_NAME;
         </div>
         <?php if (current_user()): ?>
         <div class="d-flex align-items-center gap-2">
+            <!-- Pulsante smoke test (solo per debug) -->
+            <button type="button" class="btn btn-outline-warning btn-sm d-none" id="smoke-test-btn" title="Smoke Test">
+                <i class="bi bi-check-circle"></i>
+            </button>
             <button type="button" class="btn btn-outline-secondary btn-icon position-relative" data-notification-trigger aria-label="Notifiche">
                 <i class="bi bi-bell"></i>
                 <span class="notif-dot" data-notification-badge></span>

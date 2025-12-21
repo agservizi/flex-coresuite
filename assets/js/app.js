@@ -770,6 +770,32 @@ async function clearCacheForCapacitor() {
   }
 }
 
+// Intercetta richieste fetch per aggiungere headers browser-like
+const originalFetch = window.fetch;
+window.fetch = function(...args) {
+  const [resource, config] = args;
+
+  // Se è una richiesta alle pagine auth, aggiungi headers per simulare browser
+  if (typeof resource === 'string' && resource.includes('/auth/')) {
+    console.log('Intercepting auth request:', resource);
+    const newConfig = {
+      ...config,
+      headers: {
+        ...config?.headers,
+        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'it-IT,it;q=0.9,en-US;q=0.8,en;q=0.7',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache'
+      }
+    };
+    return originalFetch(resource, newConfig);
+  }
+
+  return originalFetch(...args);
+};
+
 // Funzionalità Capacitor avanzate
 async function initializeCapacitorFeatures() {
   if (!window.Capacitor || !Capacitor.isNativePlatform()) return;
@@ -1072,6 +1098,79 @@ function refreshAppData() {
   }
 }
 
+// Smoke test per verificare raggiungibilità pagine auth
+async function runSmokeTest() {
+  console.log('🚀 Avvio Smoke Test per pagine auth...');
+
+  const testUrls = [
+    '/auth/login.php',
+    '/auth/forgot_password.php',
+    '/auth/reset_password.php'
+  ];
+
+  const results = [];
+
+  for (const url of testUrls) {
+    try {
+      console.log(`Testing ${url}...`);
+      const startTime = Date.now();
+
+      const response = await fetch(url, {
+        method: 'HEAD', // HEAD request per testare solo raggiungibilità
+        headers: {
+          'User-Agent': window.Capacitor ?
+            'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1' :
+            navigator.userAgent,
+          'Cache-Control': 'no-cache'
+        }
+      });
+
+      const endTime = Date.now();
+      const duration = endTime - startTime;
+
+      results.push({
+        url,
+        status: response.status,
+        statusText: response.statusText,
+        duration: `${duration}ms`,
+        success: response.ok
+      });
+
+      console.log(`✅ ${url}: ${response.status} (${duration}ms)`);
+
+    } catch (error) {
+      results.push({
+        url,
+        status: 'ERROR',
+        statusText: error.message,
+        duration: 'N/A',
+        success: false
+      });
+
+      console.error(`❌ ${url}: ${error.message}`);
+    }
+  }
+
+  // Mostra risultati in un toast o alert
+  const successCount = results.filter(r => r.success).length;
+  const totalCount = results.length;
+
+  const message = `Smoke Test: ${successCount}/${totalCount} pagine OK\n` +
+    results.map(r => `${r.url}: ${r.status}`).join('\n');
+
+  if (successCount === totalCount) {
+    showToast('✅ Smoke Test passato!', 'success');
+  } else {
+    showToast(`❌ Smoke Test fallito\n${message}`, 'error');
+  }
+
+  console.log('📊 Risultati Smoke Test:', results);
+  return results;
+}
+
+// Esponi funzione globalmente per debug
+window.runSmokeTest = runSmokeTest;
+
 // Inizializza tutto al caricamento
 document.addEventListener('DOMContentLoaded', () => {
   // Svuota cache automaticamente per Capacitor
@@ -1119,6 +1218,15 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   setupNotifications();
+
+  // Mostra pulsante smoke test su Capacitor
+  if (window.Capacitor && Capacitor.isNativePlatform()) {
+    const smokeBtn = document.getElementById('smoke-test-btn');
+    if (smokeBtn) {
+      smokeBtn.classList.remove('d-none');
+      smokeBtn.addEventListener('click', runSmokeTest);
+    }
+  }
 
   // Inizializza funzionalità Capacitor
   initializeCapacitorFeatures();

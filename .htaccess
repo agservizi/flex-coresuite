@@ -1,0 +1,16 @@
+# Flex Coresuite .htaccess
+# Allows direct access to PHP files and assets, routes everything else to index.php
+
+RewriteEngine On
+
+# Allow direct access to auth pages (fixes 404 issues with Capacitor)
+RewriteRule ^auth/(.*\.php)$ - [L]
+
+# Allow direct access to other PHP files
+RewriteRule ^(.*\.php)$ - [L]
+
+# Allow access to assets and public files
+RewriteRule ^(assets|public|uploads)/ - [L]
+
+# For everything else, serve index.php (SPA fallback)
+RewriteRule ^ index.php [QSA,L]
