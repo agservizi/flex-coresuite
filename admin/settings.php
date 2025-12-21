@@ -70,30 +70,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
         }
-        if (isset($_POST['entity']) && $_POST['entity'] === 'segnalatore') {
-            $name = sanitize($_POST['name'] ?? '');
-            $emailRaw = trim($_POST['email'] ?? '');
-
-            if (!$name || strlen($name) > 120) {
-                $error = 'Nome segnalatore non valido';
-            } elseif (!filter_var($emailRaw, FILTER_VALIDATE_EMAIL)) {
-                $error = 'Email non valida';
-            } else {
-                try {
-                    $created = create_segnalatore($name, $emailRaw, null, true);
-                    if (!empty($created['reset_token'])) {
-                        notify_segnalatore_credentials($name, $emailRaw, $created['reset_token']);
-                        $message = 'Segnalatore creato, email inviata per impostare la password';
-                    } else {
-                        $message = 'Segnalatore creato';
-                    }
-                } catch (InvalidArgumentException $e) {
-                    $error = $e->getMessage();
-                } catch (Throwable $e) {
-                    $error = 'Errore durante la creazione: ' . $e->getMessage();
-                }
-            }
-        }
         $gestori = get_gestori();
         $offers = get_offers();
     }
@@ -153,28 +129,6 @@ include __DIR__ . '/../includes/layout/header.php';
             </div>
         <?php endforeach; ?>
     </div>
-</div>
-
-<div class="card-soft p-3 mb-3">
-    <div class="d-flex justify-content-between align-items-center mb-2">
-        <div>
-            <div class="bite">Segnalatori</div>
-            <h2 class="h6 fw-bold mb-0">Crea / invia invito</h2>
-        </div>
-    </div>
-    <form method="post" class="row g-2 align-items-center">
-        <?php echo csrf_field(); ?>
-        <input type="hidden" name="entity" value="segnalatore">
-        <div class="col-12 col-md-5">
-            <input type="text" class="form-control" name="name" placeholder="Nome completo" required>
-        </div>
-        <div class="col-12 col-md-5">
-            <input type="email" class="form-control" name="email" placeholder="Email" required>
-        </div>
-        <div class="col-12 col-md-2">
-            <button class="btn btn-primary w-100 btn-sm">Invia invito</button>
-        </div>
-    </form>
 </div>
 
 <div class="card-soft p-3 mb-3">
