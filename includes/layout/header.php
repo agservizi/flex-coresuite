@@ -38,8 +38,7 @@ $pageTitle = $pageTitle ?? APP_NAME;
 <div class="app-shell">
     <header class="app-topbar d-flex align-items-center justify-content-between px-3 py-2 border-bottom">
         <div>
-            <div class="text-uppercase small text-muted fw-semibold"><?php echo APP_SUITE; ?></div>
-            <div class="fw-bold">Flex</div>
+            <img src="<?php echo asset_url('/public/logo-flex.svg'); ?>" alt="Flex Logo" style="height: 32px; width: auto;">
         </div>
         <?php if (current_user()): ?>
         <div class="d-flex align-items-center gap-2">
