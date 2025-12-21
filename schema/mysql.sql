@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS opportunities (
     phone VARCHAR(20) NULL,
     address VARCHAR(255) NULL,
     city VARCHAR(100) NULL,
-    offer_id INT UNSIGNED NOT NULL,
+    offer_id INT UNSIGNED NULL,
     manager_id INT UNSIGNED NOT NULL,
     commission DECIMAL(10,2) NOT NULL DEFAULT 0,
     status ENUM('In attesa','OK','KO') NOT NULL DEFAULT 'In attesa',
