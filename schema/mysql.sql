@@ -34,6 +34,9 @@ CREATE TABLE IF NOT EXISTS opportunities (
     first_name VARCHAR(120) NOT NULL,
     last_name VARCHAR(120) NOT NULL,
     notes TEXT NULL,
+    phone VARCHAR(20) NULL,
+    address VARCHAR(255) NULL,
+    city VARCHAR(100) NULL,
     offer_id INT UNSIGNED NOT NULL,
     manager_id INT UNSIGNED NOT NULL,
     commission DECIMAL(10,2) NOT NULL DEFAULT 0,
@@ -125,4 +128,27 @@ CREATE TABLE IF NOT EXISTS notifications (
     CONSTRAINT fk_notifications_user FOREIGN KEY (user_id) REFERENCES users(id),
     INDEX idx_notifications_user_time (user_id, created_at),
     INDEX idx_notifications_user_unread (user_id, read_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS opportunity_comments (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    opportunity_id INT UNSIGNED NOT NULL,
+    comment TEXT NOT NULL,
+    user_id INT UNSIGNED NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_comments_opportunity FOREIGN KEY (opportunity_id) REFERENCES opportunities(id),
+    CONSTRAINT fk_comments_user FOREIGN KEY (user_id) REFERENCES users(id),
+    INDEX idx_comments_opportunity_time (opportunity_id, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS opportunity_docs (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    opportunity_id INT UNSIGNED NOT NULL,
+    path VARCHAR(500) NOT NULL,
+    original_name VARCHAR(255) NOT NULL,
+    mime VARCHAR(100) NOT NULL,
+    size INT UNSIGNED NOT NULL,
+    uploaded_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_docs_opportunity FOREIGN KEY (opportunity_id) REFERENCES opportunities(id),
+    INDEX idx_docs_opportunity_time (opportunity_id, uploaded_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

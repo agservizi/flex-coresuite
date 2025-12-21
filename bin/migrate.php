@@ -82,6 +82,36 @@ $pdo->exec('ALTER TABLE push_subscriptions ADD UNIQUE KEY IF NOT EXISTS idx_push
 $pdo->exec('ALTER TABLE push_subscriptions DROP INDEX IF EXISTS idx_push_endpoint');
 $pdo->exec('ALTER TABLE push_subscriptions ADD UNIQUE KEY IF NOT EXISTS idx_push_endpoint (endpoint)');
 
+// Ensure opportunity_comments table exists
+$pdo->exec('CREATE TABLE IF NOT EXISTS opportunity_comments (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    opportunity_id INT UNSIGNED NOT NULL,
+    comment TEXT NOT NULL,
+    user_id INT UNSIGNED NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_comments_opportunity FOREIGN KEY (opportunity_id) REFERENCES opportunities(id),
+    CONSTRAINT fk_comments_user FOREIGN KEY (user_id) REFERENCES users(id),
+    INDEX idx_comments_opportunity_time (opportunity_id, created_at)
+)');
+
+// Ensure opportunity_docs table exists
+$pdo->exec('CREATE TABLE IF NOT EXISTS opportunity_docs (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    opportunity_id INT UNSIGNED NOT NULL,
+    path VARCHAR(500) NOT NULL,
+    original_name VARCHAR(255) NOT NULL,
+    mime VARCHAR(100) NOT NULL,
+    size INT UNSIGNED NOT NULL,
+    uploaded_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_docs_opportunity FOREIGN KEY (opportunity_id) REFERENCES opportunities(id),
+    INDEX idx_docs_opportunity_time (opportunity_id, uploaded_at)
+)');
+
+// Ensure phone, address, city columns in opportunities
+$pdo->exec('ALTER TABLE opportunities ADD COLUMN IF NOT EXISTS phone VARCHAR(20) NULL');
+$pdo->exec('ALTER TABLE opportunities ADD COLUMN IF NOT EXISTS address VARCHAR(255) NULL');
+$pdo->exec('ALTER TABLE opportunities ADD COLUMN IF NOT EXISTS city VARCHAR(100) NULL');
+
 // Nessun seed automatico: gestori e offerte vanno inseriti dall'admin.
 
 echo "Migrations and seed completed.\n";

@@ -11,10 +11,12 @@ USE flex;
 -- 2) Schema
 CREATE TABLE IF NOT EXISTS users (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    role ENUM('admin','installer') NOT NULL,
+    role ENUM('admin','installer','segnalatore') NOT NULL,
     name VARCHAR(120) NOT NULL,
     email VARCHAR(180) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL,
+    password VARCHAR(255) NULL,
+    password_reset_token VARCHAR(64) NULL,
+    password_reset_expires DATETIME NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -46,12 +48,47 @@ CREATE TABLE IF NOT EXISTS opportunities (
     status ENUM('In attesa','OK','KO') NOT NULL DEFAULT 'In attesa',
     installer_id INT UNSIGNED NULL,
     created_by INT UNSIGNED NULL,
+    phone VARCHAR(20) NULL,
+    address VARCHAR(255) NULL,
+    city VARCHAR(120) NULL,
     month TINYINT UNSIGNED NOT NULL,
     created_at DATE NOT NULL,
     CONSTRAINT fk_opportunities_offer FOREIGN KEY (offer_id) REFERENCES offers(id),
     CONSTRAINT fk_opportunities_manager FOREIGN KEY (manager_id) REFERENCES gestori(id),
     CONSTRAINT fk_opportunities_installer FOREIGN KEY (installer_id) REFERENCES users(id),
     CONSTRAINT fk_opportunities_created_by FOREIGN KEY (created_by) REFERENCES users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS opportunity_audit (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    opportunity_id INT UNSIGNED NOT NULL,
+    old_status ENUM('In attesa','OK','KO') NOT NULL,
+    new_status ENUM('In attesa','OK','KO') NOT NULL,
+    changed_by INT UNSIGNED NOT NULL,
+    changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_audit_opportunity FOREIGN KEY (opportunity_id) REFERENCES opportunities(id),
+    CONSTRAINT fk_audit_user FOREIGN KEY (changed_by) REFERENCES users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS opportunity_comments (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    opportunity_id INT UNSIGNED NOT NULL,
+    comment TEXT NOT NULL,
+    user_id INT UNSIGNED NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_comments_opportunity FOREIGN KEY (opportunity_id) REFERENCES opportunities(id),
+    CONSTRAINT fk_comments_user FOREIGN KEY (user_id) REFERENCES users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS opportunity_docs (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    opportunity_id INT UNSIGNED NOT NULL,
+    path VARCHAR(500) NOT NULL,
+    original_name VARCHAR(255) NOT NULL,
+    mime VARCHAR(100) NOT NULL,
+    size INT UNSIGNED NOT NULL,
+    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_docs_opportunity FOREIGN KEY (opportunity_id) REFERENCES opportunities(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 3) Seed demo data (password hashes: admin123 / installer123)
