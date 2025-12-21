@@ -33,10 +33,10 @@ include __DIR__ . '/../includes/layout/header.php';
     </div>
 </div>
 
-<form class="row g-2 mb-3" method="get" data-auto-submit="true">
+<form class="row g-2 mb-3" method="get">
     <div class="col-6">
         <select class="form-select" name="month">
-            <option value="">Mese</option>
+            <option value="">Tutti Mesi</option>
             <?php foreach (month_options() as $m): ?>
                 <option value="<?php echo $m['value']; ?>" <?php echo ($month == $m['value']) ? 'selected' : ''; ?>><?php echo $m['label']; ?></option>
             <?php endforeach; ?>
@@ -44,7 +44,7 @@ include __DIR__ . '/../includes/layout/header.php';
     </div>
     <div class="col-6">
         <select class="form-select" name="status">
-            <option value="">Stato</option>
+            <option value="">Tutti Stati</option>
             <option value="<?php echo STATUS_PENDING; ?>" <?php echo ($status === STATUS_PENDING) ? 'selected' : ''; ?>>In attesa</option>
             <option value="<?php echo STATUS_OK; ?>" <?php echo ($status === STATUS_OK) ? 'selected' : ''; ?>>OK</option>
             <option value="<?php echo STATUS_KO; ?>" <?php echo ($status === STATUS_KO) ? 'selected' : ''; ?>>KO</option>
@@ -52,39 +52,55 @@ include __DIR__ . '/../includes/layout/header.php';
     </div>
 </form>
 
-<?php foreach ($ops as $op): ?>
-    <a href="dettagli.php?id=<?php echo $op['id']; ?>" class="text-decoration-none">
-        <div class="card-soft p-3 mb-2">
-            <div class="d-flex justify-content-between align-items-center mb-1">
-                <div>
-                    <div class="fw-bold"><?php echo sanitize($op['first_name'] . ' ' . $op['last_name']); ?></div>
-                    <div class="text-muted small"><?php echo sanitize($op['offer_name']); ?> · <?php echo sanitize($op['manager_name']); ?></div>
-                    <div class="small text-muted">Codice: <?php echo sanitize($op['opportunity_code'] ?? ''); ?></div>
-                    <?php if (!empty($op['phone'])): ?>
-                        <div class="small text-muted">Cell: <?php echo sanitize($op['phone']); ?></div>
-                    <?php endif; ?>
-                    <?php if (!empty($op['address'])): ?>
-                        <div class="small text-muted">Indirizzo: <?php echo sanitize($op['address']); ?></div>
-                    <?php endif; ?>
-                    <?php if (!empty($op['city'])): ?>
-                        <div class="small text-muted">Città: <?php echo sanitize($op['city']); ?></div>
-                    <?php endif; ?>
-                    <?php if (strpos($op['notes'], 'Urgente') !== false): ?>
-                        <span class="badge bg-danger">Installazione urgente</span>
-                    <?php endif; ?>
-                </div>
-                <span class="badge bg-secondary"><?php echo sanitize($op['status']); ?></span>
-            </div>
-            <div class="d-flex justify-content-between align-items-center">
-                <div class="text-muted small">Inserita il <?php echo sanitize($op['created_at']); ?></div>
-                <div class="fw-bold text-primary"><?php echo $op['commission'] == 0 ? 'Urgente' : '€ ' . number_format($op['commission'], 2, ',', '.'); ?></div>
-            </div>
-        </div>
-    </a>
-<?php endforeach; ?>
-
-<?php if (empty($ops)): ?>
-    <div class="alert alert-info">Nessuna opportunity con i filtri applicati.</div>
-<?php endif; ?>
+<table id="opportunitiesTable" class="table table-striped table-bordered">
+    <thead>
+        <tr>
+            <th>Codice</th>
+            <th>Cliente</th>
+            <th>Offerta</th>
+            <th>Gestore</th>
+            <th>Stato</th>
+            <th>Provvigione</th>
+            <th>Data</th>
+            <th>Azioni</th>
+        </tr>
+    </thead>
+    <tbody>
+        <?php foreach ($ops as $op): ?>
+        <tr>
+            <td><?php echo sanitize($op['opportunity_code'] ?? ''); ?></td>
+            <td><?php echo sanitize($op['first_name'] . ' ' . $op['last_name']); ?></td>
+            <td><?php echo sanitize($op['offer_name']); ?></td>
+            <td><?php echo sanitize($op['manager_name']); ?></td>
+            <td><?php echo sanitize($op['status']); ?></td>
+            <td><?php echo $op['commission'] == 0 ? 'Urgente' : '€ ' . number_format($op['commission'], 2, ',', '.'); ?></td>
+            <td><?php echo strftime('%d/%m/%Y', strtotime($op['created_at'])); ?></td>
+            <td>
+                <a href="dettagli.php?id=<?php echo $op['id']; ?>" class="btn btn-sm btn-outline-primary">Dettagli</a>
+            </td>
+        </tr>
+        <?php endforeach; ?>
+    </tbody>
+</table>
 
 <?php include __DIR__ . '/../includes/layout/footer.php'; ?>
+
+<script>
+$(document).ready(function() {
+    $('#opportunitiesTable').DataTable({
+        dom: 'Bfrtip',
+        buttons: [
+            {
+                extend: 'csv',
+                text: 'Esporta CSV',
+                className: 'btn btn-outline-primary btn-sm'
+            }
+        ],
+        language: {
+            url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/it-IT.json'
+        },
+        pageLength: 25,
+        order: [[6, 'desc']] // Ordina per data
+    });
+});
+</script>
