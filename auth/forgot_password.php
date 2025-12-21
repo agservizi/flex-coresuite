@@ -48,7 +48,7 @@ include __DIR__ . '/../includes/layout/header.php';
             <div class="col-md-6 col-lg-4">
                 <div class="text-center mb-4">
                     <div class="logo-circle mb-3">
-                        <i class="bi bi-key-fill text-primary" style="font-size: 3rem;"></i>
+                        <i class="bi bi-key-fill text-dark" style="font-size: 3rem;"></i>
                     </div>
                     <h1 class="h4 fw-bold text-light mb-1">Reset Password</h1>
                     <p class="text-light small">Inserisci la tua email aziendale</p>
@@ -67,7 +67,7 @@ include __DIR__ . '/../includes/layout/header.php';
                     <?php echo csrf_field(); ?>
                     <div class="form-floating mb-3">
                         <input type="email" class="form-control border-0 bg-light rounded-3" id="email" name="email" placeholder="email" required>
-                        <label for="email" class="text-light">
+                        <label for="email" class="text-dark">
                             <i class="bi bi-envelope-fill me-2"></i>Email aziendale
                         </label>
                     </div>

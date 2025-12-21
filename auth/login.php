@@ -74,7 +74,7 @@ include __DIR__ . '/../includes/layout/header.php';
             <div class="col-md-6 col-lg-4">
                 <div class="text-center mb-4">
                     <div class="logo-circle mb-3">
-                        <i class="bi bi-shield-lock-fill text-primary" style="font-size: 3rem;"></i>
+                        <i class="bi bi-shield-lock-fill text-dark" style="font-size: 3rem;"></i>
                     </div>
                         <h1 class="h4 fw-bold text-light mb-1">Accedi a Flex</h1>
                         <p class="text-light small"><?php echo COMPANY_NAME; ?> - Coresuite</p>
@@ -88,20 +88,20 @@ include __DIR__ . '/../includes/layout/header.php';
                     <?php echo csrf_field(); ?>
                     <div class="form-floating mb-3">
                         <input type="email" class="form-control border-0 bg-light rounded-3" id="email" name="email" placeholder="email" value="<?php echo $rememberedEmail; ?>" required>
-                        <label for="email" class="text-light">
+                        <label for="email" class="text-dark">
                             <i class="bi bi-envelope-fill me-2"></i>Email aziendale
                         </label>
                     </div>
                     <div class="form-floating mb-3">
                         <input type="password" class="form-control border-0 bg-light rounded-3" id="password" name="password" placeholder="Password" required>
-                        <label for="password" class="text-light">
+                        <label for="password" class="text-dark">
                             <i class="bi bi-lock-fill me-2"></i>Password
                         </label>
                     </div>
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" value="1" id="remember" name="remember" <?php echo $rememberedEmail ? 'checked' : ''; ?>>
-                            <label class="form-check-label small text-light" for="remember">Ricorda email</label>
+                            <label class="form-check-label small text-dark" for="remember">Ricorda email</label>
                         </div>
                         <a href="/auth/forgot_password.php" class="text-light text-decoration-none fw-semibold">Dimenticato?</a>
                     </div>
