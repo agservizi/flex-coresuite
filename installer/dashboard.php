@@ -10,6 +10,13 @@ $ops = filter_opportunities(['installer_id' => $user['id']]);
 $summary = summarize($ops);
 $latest = array_slice($ops, 0, 5);
 
+// Dati per grafico stati
+$statusData = [
+    ['status' => 'OK', 'count' => $summary['ok'], 'color' => '#28a745'],
+    ['status' => 'In attesa', 'count' => $summary['pending'], 'color' => '#ffc107'],
+    ['status' => 'KO', 'count' => $summary['ko'], 'color' => '#dc3545']
+];
+
 $pageTitle = 'Dashboard';
 $bottomNav = '
     <a class="nav-pill active" href="/installer/dashboard.php"><span class="dot"></span><span>Home</span></a>
@@ -72,6 +79,33 @@ include __DIR__ . '/../includes/layout/header.php';
     </div>
 </div>
 
+<div class="card-soft p-3 mb-3">
+    <div class="bite">Distribuzione stati</div>
+    <canvas id="statusChart" width="400" height="200"></canvas>
+</div>
+
+<?php
+$urgentOps = array_filter($ops, fn($op) => $op['status'] === 'In attesa' && strtotime($op['created_at']) < strtotime('-7 days'));
+?>
+<?php if (!empty($urgentOps)): ?>
+<div class="card-soft p-3 mb-3">
+    <div class="bite text-warning">Opportunity urgenti</div>
+    <div class="list-group list-compact">
+        <?php foreach (array_slice($urgentOps, 0, 3) as $op): ?>
+        <div class="list-group-item">
+            <div class="d-flex justify-content-between">
+                <div>
+                    <strong><?php echo sanitize($op['first_name'] . ' ' . $op['last_name']); ?></strong>
+                    <div class="small text-muted"><?php echo sanitize($op['opportunity_code']); ?> · <?php echo date('d/m/Y', strtotime($op['created_at'])); ?></div>
+                </div>
+                <a href="/installer/dettagli.php?id=<?php echo $op['id']; ?>" class="btn btn-sm btn-outline-primary">Vedi</a>
+            </div>
+        </div>
+        <?php endforeach; ?>
+    </div>
+</div>
+<?php endif; ?>
+
 <div class="d-flex justify-content-between align-items-center mb-2">
     <div class="bite">Ultime opportunity</div>
     <a href="/installer/opportunities.php" class="btn btn-sm btn-outline-primary">Vedi tutte</a>
@@ -96,3 +130,23 @@ include __DIR__ . '/../includes/layout/header.php';
     <a class="btn btn-primary btn-pill" href="/installer/new_opportunity.php">+ Nuova opportunity</a>
 </div>
 <?php include __DIR__ . '/../includes/layout/footer.php'; ?>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('statusChart').getContext('2d');
+    const data = <?php echo json_encode($statusData); ?>;
+    new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: data.map(d => d.status),
+            datasets: [{
+                data: data.map(d => d.count),
+                backgroundColor: data.map(d => d.color)
+            }]
+        },
+        options: {
+            responsive: true
+        }
+    });
+});
+</script>

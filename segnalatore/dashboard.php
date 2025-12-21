@@ -15,6 +15,17 @@ $summary = [
 ];
 $latest = array_slice($opportunities, 0, 5);
 
+// Dati per grafico andamento
+$trendData = [];
+for ($i = 5; $i >= 0; $i--) {
+    $month = date('Y-m', strtotime("-$i months"));
+    $monthName = strftime('%b', strtotime($month . '-01'));
+    $count = count(array_filter($opportunities, function($opp) use ($month) {
+        return date('Y-m', strtotime($opp['created_at'])) === $month;
+    }));
+    $trendData[] = ['month' => $monthName, 'count' => $count];
+}
+
 $pageTitle = 'Dashboard';
 $bottomNav = '
     <a class="nav-pill active" href="/segnalatore/dashboard.php"><span class="dot"></span><span>Home</span></a>
@@ -81,6 +92,33 @@ $name = $parts[0] . ' ' . (isset($parts[1]) ? substr($parts[1], 0, 1) . '.' : ''
     </div>
 </div>
 
+<div class="card-soft p-3 mb-3">
+    <div class="bite">Andamento segnalazioni</div>
+    <canvas id="trendChart" width="400" height="200"></canvas>
+</div>
+
+<?php
+$pendingOps = array_filter($opportunities, fn($opp) => $opp['status'] === 'In attesa');
+$conversionRate = $summary['total'] > 0 ? round(($summary['ok'] / $summary['total']) * 100, 1) : 0;
+?>
+<div class="card-soft p-3 mb-3">
+    <div class="bite">Statistiche personali</div>
+    <div class="row g-2">
+        <div class="col-6">
+            <div class="stat-chip">
+                <div class="bite">Tasso conversione</div>
+                <div class="h4 fw-bold mb-0"><?php echo $conversionRate; ?>%</div>
+            </div>
+        </div>
+        <div class="col-6">
+            <div class="stat-chip">
+                <div class="bite">In attesa</div>
+                <div class="h4 fw-bold mb-0"><?php echo count($pendingOps); ?></div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="d-flex justify-content-between align-items-center mb-2">
     <div class="bite">Ultime opportunità</div>
     <a href="/segnalatore/segnalazioni.php" class="btn btn-sm btn-outline-primary">Vedi tutte</a>
@@ -110,3 +148,31 @@ $name = $parts[0] . ' ' . (isset($parts[1]) ? substr($parts[1], 0, 1) . '.' : ''
     <a class="btn btn-primary btn-pill" href="/segnalatore/new_opportunity.php">+ Nuova opportunità</a>
 </div>
 <?php include __DIR__ . '/../includes/layout/footer.php'; ?>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('trendChart').getContext('2d');
+    const data = <?php echo json_encode($trendData); ?>;
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: data.map(d => d.month),
+            datasets: [{
+                label: 'Segnalazioni',
+                data: data.map(d => d.count),
+                borderColor: 'rgba(75, 192, 192, 1)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+});
+</script>

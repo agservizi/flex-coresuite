@@ -10,6 +10,17 @@ $invalid_users = array_filter($users, function($user) {
     return !in_array($user['role'], ['admin', 'installer', 'segnalatore']) || empty($user['role']);
 });
 
+// Dati per grafico mensile
+$monthlyData = [];
+for ($i = 5; $i >= 0; $i--) {
+    $month = date('Y-m', strtotime("-$i months"));
+    $monthName = strftime('%b %Y', strtotime($month . '-01'));
+    $count = count(array_filter($ops, function($op) use ($month) {
+        return date('Y-m', strtotime($op['created_at'])) === $month;
+    }));
+    $monthlyData[] = ['month' => $monthName, 'count' => $count];
+}
+
 $pageTitle = 'Dashboard Admin';
 $bottomNav = '
     <a class="nav-pill active" href="/admin/dashboard.php"><span class="dot"></span><span>Home</span></a>
@@ -63,6 +74,11 @@ include __DIR__ . '/../includes/layout/header.php';
     </div>
 </div>
 
+<div class="card-soft p-3 mb-3">
+    <div class="bite">Andamento mensile</div>
+    <canvas id="monthlyChart" width="400" height="200"></canvas>
+</div>
+
 <?php if (count($invalid_users) > 0): ?>
 <div class="card-soft p-3 mb-3">
     <div class="d-flex justify-content-between align-items-center mb-2">
@@ -84,6 +100,34 @@ include __DIR__ . '/../includes/layout/header.php';
 </div>
 <?php endif; ?>
 
+<?php
+$recentComments = db()->query("SELECT c.comment, c.created_at, u.name AS user_name, o.opportunity_code
+                               FROM opportunity_comments c
+                               LEFT JOIN users u ON c.user_id = u.id
+                               LEFT JOIN opportunities o ON c.opportunity_id = o.id
+                               ORDER BY c.created_at DESC LIMIT 5")->fetchAll();
+?>
+<?php if (!empty($recentComments)): ?>
+<div class="card-soft p-3 mb-3">
+    <div class="bite">Ultimi commenti</div>
+    <div class="list-group list-compact">
+        <?php foreach ($recentComments as $comment): ?>
+        <div class="list-group-item">
+            <div class="d-flex justify-content-between">
+                <div>
+                    <strong><?php echo htmlspecialchars($comment['user_name']); ?></strong> su <?php echo htmlspecialchars($comment['opportunity_code']); ?>
+                    <div class="small text-muted"><?php echo htmlspecialchars(substr($comment['comment'], 0, 50)); ?>...</div>
+                </div>
+                <div class="small text-muted">
+                    <?php echo date('d/m H:i', strtotime($comment['created_at'])); ?>
+                </div>
+            </div>
+        </div>
+        <?php endforeach; ?>
+    </div>
+</div>
+<?php endif; ?>
+
 <div class="card-soft p-3">
     <div class="d-flex justify-content-between align-items-center mb-2">
         <div class="bite">Azioni rapide</div>
@@ -98,3 +142,31 @@ include __DIR__ . '/../includes/layout/header.php';
     </div>
 </div>
 <?php include __DIR__ . '/../includes/layout/footer.php'; ?>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('monthlyChart').getContext('2d');
+    const data = <?php echo json_encode($monthlyData); ?>;
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: data.map(d => d.month),
+            datasets: [{
+                label: 'Opportunity',
+                data: data.map(d => d.count),
+                backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+});
+</script>
