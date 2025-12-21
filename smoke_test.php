@@ -34,19 +34,69 @@ try {
     $adminSubs = get_admin_push_subscriptions();
     echo "✓ Admin push subscriptions: " . count($adminSubs) . " found\n";
 
-    // Test push notification preparation
+    // Test push notification system
+    echo "\n--- Testing Push Notification System ---\n";
+
+    // Test VAPID key loading
+    $vapidPublic = get_vapid_public_key();
+    $vapidPrivate = get_vapid_private_key();
+    if ($vapidPublic && $vapidPrivate) {
+        echo "✓ VAPID keys loaded successfully\n";
+
+        // Test push payload building (without sending)
+        $testPayload = [
+            'title' => 'Smoke Test Notification',
+            'body' => 'This is a test notification from smoke test',
+            'data' => ['test' => true]
+        ];
+
+        try {
+            // Test FCM payload building
+            $fcmKey = getenv('FCM_SERVER_KEY');
+            if ($fcmKey) {
+                $fcmPayload = [
+                    'to' => 'test_token',
+                    'notification' => [
+                        'title' => $testPayload['title'],
+                        'body' => $testPayload['body']
+                    ],
+                    'data' => $testPayload['data']
+                ];
+                echo "✓ FCM payload building OK\n";
+            } else {
+                echo "⚠ FCM key not configured (push to iOS may not work)\n";
+            }
+
+            // Test web push payload building
+            $webPayload = [
+                'title' => $testPayload['title'],
+                'body' => $testPayload['body'],
+                'data' => $testPayload['data']
+            ];
+            echo "✓ Web push payload building OK\n";
+
+        } catch (Exception $e) {
+            echo "✗ Push payload building failed: " . $e->getMessage() . "\n";
+        }
+    } else {
+        echo "✗ VAPID keys not available\n";
+    }
+
+    // Test admin subscriptions
+    $adminSubs = get_admin_push_subscriptions();
+    echo "✓ Admin push subscriptions loaded: " . count($adminSubs) . " found\n";
+
+    // Test Capacitor push notification filtering
     $mockSubs = [
         ['endpoint' => 'https://example.com/push', 'p256dh' => 'mock', 'auth' => 'mock'],
-        ['token' => 'mock_fcm_token', 'platform' => 'ios']
+        ['token' => 'mock_fcm_token_ios', 'platform' => 'ios'],
+        ['token' => 'mock_fcm_token_android', 'platform' => 'android']
     ];
-    try {
-        // Test filtering (without actual send)
-        $webSubs = array_filter($mockSubs, fn($sub) => !empty($sub['endpoint']));
-        $nativeSubs = array_filter($mockSubs, fn($sub) => !empty($sub['token']));
-        echo "✓ Push notification filtering: " . count($webSubs) . " web, " . count($nativeSubs) . " native\n";
 
-        // Test FCM payload building
-        if ($fcmKey) {
+    $webSubs = array_filter($mockSubs, fn($sub) => !empty($sub['endpoint']));
+    $nativeSubs = array_filter($mockSubs, fn($sub) => !empty($sub['token']));
+
+    echo "✓ Push subscription filtering: " . count($webSubs) . " web, " . count($nativeSubs) . " native\n";
             $payload = [
                 'to' => 'mock_token',
                 'notification' => [

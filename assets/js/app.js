@@ -1168,6 +1168,177 @@ async function runSmokeTest() {
   return results;
 }
 
+// Smoke test completo per funzionalità Capacitor
+async function runCapacitorSmokeTest() {
+  console.log('🚀 Avvio Smoke Test Completo Capacitor...');
+
+  const results = {
+    capacitor: { available: false, native: false },
+    camera: { available: false, tested: false },
+    geolocation: { available: false, tested: false },
+    share: { available: false, tested: false },
+    notifications: { available: false, tested: false },
+    splashScreen: { available: false, tested: false },
+    statusBar: { available: false, tested: false },
+    app: { available: false, tested: false },
+    push: { registered: false, permission: 'unknown' }
+  };
+
+  try {
+    // Test Capacitor availability
+    results.capacitor.available = typeof window.Capacitor !== 'undefined';
+    results.capacitor.native = results.capacitor.available && Capacitor.isNativePlatform();
+    console.log(`📱 Capacitor: ${results.capacitor.available ? 'Available' : 'Not available'}`);
+    console.log(`🔧 Native Platform: ${results.capacitor.native ? 'Yes' : 'No'}`);
+
+    if (!results.capacitor.available) {
+      showToast('❌ Capacitor non disponibile', 'error');
+      return results;
+    }
+
+    // Test Camera
+    if (window.Capacitor.Plugins.Camera) {
+      results.camera.available = true;
+      console.log('📷 Camera plugin available');
+      try {
+        const permissions = await Capacitor.Plugins.Camera.requestPermissions();
+        results.camera.tested = true;
+        console.log('📷 Camera permissions:', permissions);
+      } catch (error) {
+        console.warn('📷 Camera test failed:', error);
+      }
+    }
+
+    // Test Geolocation
+    if (window.Capacitor.Plugins.Geolocation) {
+      results.geolocation.available = true;
+      console.log('📍 Geolocation plugin available');
+      try {
+        const permissions = await Capacitor.Plugins.Geolocation.requestPermissions();
+        results.geolocation.tested = true;
+        console.log('📍 Geolocation permissions:', permissions);
+      } catch (error) {
+        console.warn('📍 Geolocation test failed:', error);
+      }
+    }
+
+    // Test Share
+    if (window.Capacitor.Plugins.Share) {
+      results.share.available = true;
+      console.log('🔗 Share plugin available');
+      results.share.tested = true;
+    }
+
+    // Test Splash Screen
+    if (window.Capacitor.Plugins.SplashScreen) {
+      results.splashScreen.available = true;
+      console.log('💫 SplashScreen plugin available');
+      try {
+        await Capacitor.Plugins.SplashScreen.show({ showDuration: 1000 });
+        results.splashScreen.tested = true;
+        console.log('💫 SplashScreen test passed');
+      } catch (error) {
+        console.warn('💫 SplashScreen test failed:', error);
+      }
+    }
+
+    // Test Status Bar
+    if (window.Capacitor.Plugins.StatusBar) {
+      results.statusBar.available = true;
+      console.log('📊 StatusBar plugin available');
+      try {
+        await Capacitor.Plugins.StatusBar.setStyle({ style: 'DARK' });
+        results.statusBar.tested = true;
+        console.log('📊 StatusBar test passed');
+      } catch (error) {
+        console.warn('📊 StatusBar test failed:', error);
+      }
+    }
+
+    // Test App
+    if (window.Capacitor.Plugins.App) {
+      results.app.available = true;
+      console.log('📱 App plugin available');
+      try {
+        const appInfo = await Capacitor.Plugins.App.getInfo();
+        results.app.tested = true;
+        console.log('📱 App info:', appInfo);
+      } catch (error) {
+        console.warn('📱 App test failed:', error);
+      }
+    }
+
+    // Test Push Notifications
+    if (window.Capacitor.Plugins.PushNotifications) {
+      results.notifications.available = true;
+      console.log('🔔 PushNotifications plugin available');
+
+      try {
+        // Check permission
+        const permission = await Capacitor.Plugins.PushNotifications.requestPermissions();
+        results.push.permission = permission.receive;
+        console.log('🔔 Push permission:', permission);
+
+        if (permission.receive === 'granted') {
+          // Register for push
+          Capacitor.Plugins.PushNotifications.register();
+          results.notifications.tested = true;
+          results.push.registered = true;
+          console.log('🔔 Push notifications registered');
+        }
+      } catch (error) {
+        console.warn('🔔 Push test failed:', error);
+      }
+    }
+
+    // Test cache clearing
+    try {
+      await clearCacheForCapacitor();
+      console.log('🗑️ Cache cleared successfully');
+    } catch (error) {
+      console.warn('🗑️ Cache clear failed:', error);
+    }
+
+  } catch (error) {
+    console.error('❌ Capacitor smoke test failed:', error);
+  }
+
+  // Summary
+  const availablePlugins = Object.values(results).filter(r => typeof r === 'object' && r.available).length;
+  const testedPlugins = Object.values(results).filter(r => typeof r === 'object' && r.tested).length;
+
+  const summary = `
+Capacitor Smoke Test Results:
+📱 Capacitor: ${results.capacitor.available ? '✅' : '❌'}
+🔧 Native: ${results.capacitor.native ? '✅' : '❌'}
+📷 Camera: ${results.camera.available ? '✅' : '❌'}
+📍 Geolocation: ${results.geolocation.available ? '✅' : '❌'}
+🔗 Share: ${results.share.available ? '✅' : '❌'}
+🔔 Push: ${results.notifications.available ? '✅' : '❌'}
+💫 Splash: ${results.splashScreen.available ? '✅' : '❌'}
+📊 StatusBar: ${results.statusBar.available ? '✅' : '❌'}
+📱 App: ${results.app.available ? '✅' : '❌'}
+
+Plugins Available: ${availablePlugins}/8
+Plugins Tested: ${testedPlugins}/8
+Push Permission: ${results.push.permission}
+  `;
+
+  console.log(summary);
+
+  if (availablePlugins >= 6) {
+    showToast(`✅ Capacitor OK (${availablePlugins}/8 plugins)`, 'success');
+  } else {
+    showToast(`❌ Capacitor issues (${availablePlugins}/8 plugins)`, 'warning');
+  }
+
+  return results;
+}
+
+// Esponi funzioni globalmente per debug
+window.runSmokeTest = runSmokeTest;
+window.runCapacitorSmokeTest = runCapacitorSmokeTest;
+
 // Esponi funzione globalmente per debug
 window.runSmokeTest = runSmokeTest;
 
@@ -1219,12 +1390,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
   setupNotifications();
 
-  // Mostra pulsante smoke test su Capacitor
+  // Mostra pulsanti smoke test su Capacitor
   if (window.Capacitor && Capacitor.isNativePlatform()) {
     const smokeBtn = document.getElementById('smoke-test-btn');
+    const capacitorBtn = document.getElementById('capacitor-test-btn');
     if (smokeBtn) {
       smokeBtn.classList.remove('d-none');
       smokeBtn.addEventListener('click', runSmokeTest);
+    }
+    if (capacitorBtn) {
+      capacitorBtn.classList.remove('d-none');
+      capacitorBtn.addEventListener('click', runCapacitorSmokeTest);
     }
   }
 

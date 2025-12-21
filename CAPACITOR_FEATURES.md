@@ -128,5 +128,30 @@ Questa implementazione fornisce una base solida per aggiungere:
 - Integrazione con contatti del dispositivo
 - Supporto NFC/QR code
 - Background fetch per aggiornamenti
-- Modalità offline completa</content>
+- Modalità offline completa
+
+## Testing e Debug
+
+### Pulsanti Debug nell'Header (solo su app Capacitor)
+- **🟡 Cerchio giallo**: Smoke test pagine auth
+- **🔵 Cerchio blu**: Test completo funzionalità Capacitor
+
+### Test Backend
+```bash
+# Test completo sistema
+php smoke_test.php
+
+# Test notifiche push
+php test_push.php?action=comprehensive
+php test_push.php?action=send_test&json=1
+```
+
+### Test Frontend (Console Browser)
+```javascript
+// Test pagine auth
+runSmokeTest()
+
+// Test completo Capacitor
+runCapacitorSmokeTest()
+```</content>
 <parameter name="filePath">/Users/carminecavaliere/Desktop/flex coresuite/CAPACITOR_FEATURES.md
