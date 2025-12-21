@@ -372,15 +372,17 @@ function add_opportunity(array $data): array
         if (!$offer) {
             throw new InvalidArgumentException('Offerta non valida');
         }
-    } else {
-        // For urgent or default
+    } elseif (isset($data['manager_id']) && (int)$data['manager_id'] > 0) {
+        // For urgent
         $offer = [
             'id' => 0,
-            'name' => 'Fibra 100',
-            'commission' => 35.00,
-            'manager_id' => (int)($data['manager_id'] ?? 0),
-            'manager_name' => 'Default'
+            'name' => 'Urgente',
+            'commission' => $data['commission'] ?? 0.00,
+            'manager_id' => (int)$data['manager_id'],
+            'manager_name' => 'Urgente'
         ];
+    } else {
+        throw new InvalidArgumentException('Offerta non valida');
     }
 
     $now = new DateTimeImmutable();

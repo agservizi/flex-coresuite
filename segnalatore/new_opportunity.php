@@ -3,13 +3,21 @@ require_once __DIR__ . '/../includes/permissions.php';
 require_role('segnalatore');
 require_once __DIR__ . '/../includes/helpers.php';
 
+function log_debug($message) {
+    $logFile = __DIR__ . '/../uploads/debug_log.txt';
+    file_put_contents($logFile, date('Y-m-d H:i:s') . ' - ' . $message . "\n", FILE_APPEND);
+}
+
 $user = current_user();
+log_debug('User loggato in segnalatore: ' . json_encode($user));
 $offers = get_offers();
 $message = null;
 $error = null;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    log_debug('POST ricevuto per nuova segnalazione da user ' . ($user['id'] ?? 'unknown'));
     if (!verify_csrf()) {
+        log_debug('CSRF fallito per user ' . ($user['id'] ?? 'unknown'));
         $error = 'Sessione scaduta, ricarica la pagina.';
     } else {
         $first = sanitize($_POST['first_name'] ?? '');
@@ -18,6 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $offerId = (int)($_POST['offer_id'] ?? 0);
 
         if (!$first || !$last || !$offerId || empty($_FILES['docs']['name'][0])) {
+            log_debug('Validazione fallita: first=' . $first . ', last=' . $last . ', offerId=' . $offerId . ', docs=' . count($_FILES['docs']['name']));
             $error = 'Compila tutti i campi obbligatori (nome, cognome, offerta, documenti).';
         } elseif (strlen($first) > 120 || strlen($last) > 120) {
             $error = 'Verifica lunghezza dei campi.';
@@ -48,6 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         if (move_uploaded_file($tmpName, $filePath)) {
                             $uploadedFiles[] = '/uploads/segnalatore/' . $fileName;
                         } else {
+                            log_debug('Errore move_uploaded_file per ' . $originalName);
                             $error = 'Errore nel caricamento del file.';
                             break;
                         }
@@ -68,6 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
 
                 try {
+                    log_debug('Tentativo add_opportunity per segnalatore ' . $user['id'] . ', offer ' . $offerId);
                     $opp = add_opportunity([
                         'first_name' => $first,
                         'last_name' => $last,
@@ -84,6 +95,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
 
                     $message = 'Opportunity creata (#' . $opp['opportunity_code'] . ')';
+                    log_debug('Successo: opportunity creata ' . $opp['opportunity_code']);
 
                     // Notifica admin
                     $admins = get_admins();
@@ -94,6 +106,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     send_push_notification($adminSubs, 'Nuova segnalazione', $first . ' ' . $last);
                 error_log('Push notification sent for segnalazione ' . $opp['opportunity_code']);
                 } catch (Throwable $e) {
+                    log_debug('Errore salvataggio segnalazione: ' . $e->getMessage());
                     $error = 'Errore: ' . $e->getMessage();
                 }
             }
