@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setupInstallerPicker();
   setupSavedFilters();
   setupDocPreviews();
+  setupFormValidation();
 
   injectToastStack();
   hydrateFlashMessages();
@@ -272,6 +273,14 @@ function setupOfferPicker() {
   const select = document.querySelector('[data-offer-select]');
   const label = document.querySelector('[data-offer-label]');
   if (!trigger || !sheet || !select || !label) return;
+
+  // Reset to default
+  select.value = '';
+  if ('value' in label) {
+    label.value = 'Seleziona offerta';
+  } else {
+    label.textContent = 'Seleziona offerta';
+  }
 
   const closeBtn = sheet.querySelector('[data-offer-picker-close]');
   const options = sheet.querySelectorAll('[data-offer-option]');
@@ -682,6 +691,21 @@ function setupSavedFilters() {
       } catch (err) {
         // ignore
       }
+    });
+  });
+}
+
+function setupFormValidation() {
+  const forms = document.querySelectorAll('form.needs-validation');
+  forms.forEach(form => {
+    form.addEventListener('submit', (e) => {
+      const offerSelect = form.querySelector('[data-offer-select]');
+      if (offerSelect && !offerSelect.value) {
+        e.preventDefault();
+        showToast('Seleziona un\'offerta valida.', 'error');
+        return false;
+      }
+      // Add more validations if needed
     });
   });
 }
