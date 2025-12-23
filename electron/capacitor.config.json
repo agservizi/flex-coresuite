@@ -1,10 +1,8 @@
 {
   "appId": "com.flex.coresuite",
   "appName": "Flex Coresuite",
-  "webDir": ".",
+  "webDir": "desktop"
   "server": {
-    "url": "https://flex.coresuite.it"
-  },
   "plugins": {
     "PushNotifications": {
       "presentationOptions": ["badge", "sound", "alert"],
