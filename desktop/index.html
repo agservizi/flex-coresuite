@@ -141,6 +141,19 @@
         // Carica dashboard di default
         loadContent('dashboard');
 
+        async function fetchData(url) {
+            try {
+                const response = await fetch(url, {
+                    credentials: 'include' // per includere cookies/session
+                });
+                if (!response.ok) throw new Error('Network response was not ok');
+                return await response.json();
+            } catch (error) {
+                console.error('Fetch error:', error);
+                return null;
+            }
+        }
+
         document.getElementById('notifyBtn').addEventListener('click', () => {
             new Notification({
                 title: 'Flex Coresuite',
@@ -164,7 +177,17 @@
             });
         });
 
-        function loadContent(page) {
+        function getStatusColor(status) {
+            switch(status) {
+                case 'completed': return 'success';
+                case 'in_progress': return 'warning';
+                case 'pending': return 'secondary';
+                case 'urgent': return 'danger';
+                default: return 'primary';
+            }
+        }
+
+        async function loadContent(page) {
             // Rimuovi classe active da tutti
             document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
             // Aggiungi active al corrente
@@ -173,187 +196,154 @@
             const content = document.getElementById('mainContent');
             switch(page) {
                 case 'dashboard':
-                    content.innerHTML = `
-                        <div class="row mb-4">
-                            <div class="col-md-3">
-                                <div class="card stats-card">
-                                    <h5>Opportunità Attive</h5>
-                                    <div class="stats-number">24</div>
-                                    <small class="text-muted">+12% questo mese</small>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="card stats-card">
-                                    <h5>Installatori</h5>
-                                    <div class="stats-number">8</div>
-                                    <small class="text-muted">Attivi</small>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="card stats-card">
-                                    <h5>Segnalatori</h5>
-                                    <div class="stats-number">15</div>
-                                    <small class="text-muted">Registrati</small>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="card stats-card">
-                                    <h5>Report Generati</h5>
-                                    <div class="stats-number">156</div>
-                                    <small class="text-muted">Questo trimestre</small>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-8">
-                                <div class="card">
-                                    <div class="card-header">
-                                        <h5><i class="fas fa-list"></i> Ultime Opportunità</h5>
+                    const dashboardData = await fetchData('https://flex.coresuite.it/admin/dashboard.php?format=json');
+                    if (dashboardData) {
+                        content.innerHTML = `
+                            <div class="row mb-4">
+                                <div class="col-md-3">
+                                    <div class="card stats-card">
+                                        <h5>Opportunità Attive</h5>
+                                        <div class="stats-number">${dashboardData.summary.total}</div>
+                                        <small class="text-muted">Totale</small>
                                     </div>
-                                    <div class="card-body">
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card stats-card">
+                                        <h5>Installatori</h5>
+                                        <div class="stats-number">${dashboardData.users.installers}</div>
+                                        <small class="text-muted">Attivi</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card stats-card">
+                                        <h5>Segnalatori</h5>
+                                        <div class="stats-number">${dashboardData.users.segnalatori}</div>
+                                        <small class="text-muted">Registrati</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card stats-card">
+                                        <h5>Report Generati</h5>
+                                        <div class="stats-number">${dashboardData.summary.completed}</div>
+                                        <small class="text-muted">Completati</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h5><i class="fas fa-list"></i> Ultime Opportunità</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <table class="table table-hover">
+                                                <thead>
+                                                    <tr>
+                                                        <th>ID</th>
+                                                        <th>Cliente</th>
+                                                        <th>Stato</th>
+                                                        <th>Data</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    ${dashboardData.recentOpportunities.map(op => `
+                                                        <tr>
+                                                            <td>#${op.id}</td>
+                                                            <td>${op.customer_name || 'N/A'}</td>
+                                                            <td><span class="badge bg-${getStatusColor(op.status)} badge-custom">${op.status}</span></td>
+                                                            <td>${new Date(op.created_at).toLocaleDateString('it-IT')}</td>
+                                                        </tr>
+                                                    `).join('')}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h5><i class="fas fa-calendar"></i> Eventi Oggi</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <ul class="list-unstyled">
+                                                <li class="mb-2">
+                                                    <i class="fas fa-clock text-primary"></i> Controlli giornalieri completati
+                                                </li>
+                                                <li class="mb-2">
+                                                    <i class="fas fa-clock text-success"></i> ${dashboardData.summary.completed} opportunità completate
+                                                </li>
+                                                <li class="mb-2">
+                                                    <i class="fas fa-clock text-warning"></i> ${dashboardData.summary.pending} in attesa
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        content.innerHTML = '<div class="alert alert-warning">Impossibile caricare i dati. Verifica la connessione e l\'autenticazione.</div>';
+                    }
+                    break;
+                case 'opportunities':
+                    const opportunitiesData = await fetchData('https://flex.coresuite.it/admin/opportunities.php?format=json');
+                    if (opportunitiesData) {
+                        content.innerHTML = `
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <h2><i class="fas fa-briefcase"></i> Gestione Opportunità</h2>
+                                <button class="btn btn-primary btn-custom">
+                                    <i class="fas fa-plus"></i> Nuova Opportunità
+                                </button>
+                            </div>
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="table-responsive">
                                         <table class="table table-hover">
-                                            <thead>
+                                            <thead class="table-dark">
                                                 <tr>
                                                     <th>ID</th>
                                                     <th>Cliente</th>
+                                                    <th>Tipo</th>
                                                     <th>Stato</th>
-                                                    <th>Data</th>
+                                                    <th>Priorità</th>
+                                                    <th>Assegnato a</th>
+                                                    <th>Azioni</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                <tr>
-                                                    <td>#1234</td>
-                                                    <td>Azienda XYZ</td>
-                                                    <td><span class="badge bg-success badge-custom">Completata</span></td>
-                                                    <td>2025-12-20</td>
-                                                </tr>
-                                                <tr>
-                                                    <td>#1235</td>
-                                                    <td>Cliente ABC</td>
-                                                    <td><span class="badge bg-warning badge-custom">In Corso</span></td>
-                                                    <td>2025-12-22</td>
-                                                </tr>
-                                                <tr>
-                                                    <td>#1236</td>
-                                                    <td>Impresa DEF</td>
-                                                    <td><span class="badge bg-danger badge-custom">Urgente</span></td>
-                                                    <td>2025-12-23</td>
-                                                </tr>
+                                                ${opportunitiesData.opportunities.map(op => `
+                                                    <tr>
+                                                        <td>#${op.id}</td>
+                                                        <td>${op.customer_name || 'N/A'}</td>
+                                                        <td>${op.type || 'N/A'}</td>
+                                                        <td><span class="badge bg-${getStatusColor(op.status)}">${op.status}</span></td>
+                                                        <td><span class="badge bg-${op.priority === 'high' ? 'danger' : op.priority === 'medium' ? 'warning' : 'secondary'}">${op.priority || 'Normale'}</span></td>
+                                                        <td>${op.installer_name || 'Non assegnato'}</td>
+                                                        <td>
+                                                            <button class="btn btn-sm btn-outline-primary me-1">
+                                                                <i class="fas fa-eye"></i>
+                                                            </button>
+                                                            <button class="btn btn-sm btn-outline-warning me-1">
+                                                                <i class="fas fa-edit"></i>
+                                                            </button>
+                                                            <button class="btn btn-sm btn-outline-danger">
+                                                                <i class="fas fa-trash"></i>
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                `).join('')}
                                             </tbody>
                                         </table>
                                     </div>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="card">
-                                    <div class="card-header">
-                                        <h5><i class="fas fa-calendar"></i> Eventi Oggi</h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <ul class="list-unstyled">
-                                            <li class="mb-2">
-                                                <i class="fas fa-clock text-primary"></i> 10:00 - Riunione con cliente
-                                            </li>
-                                            <li class="mb-2">
-                                                <i class="fas fa-clock text-success"></i> 14:30 - Installazione completata
-                                            </li>
-                                            <li class="mb-2">
-                                                <i class="fas fa-clock text-warning"></i> 16:00 - Controllo qualità
-                                            </li>
-                                        </ul>
+                                    <div class="mt-3">
+                                        <small class="text-muted">Mostrando ${opportunitiesData.opportunities.length} di ${opportunitiesData.total} opportunità</small>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    `;
-                    break;
-                case 'opportunities':
-                    content.innerHTML = `
-                        <div class="d-flex justify-content-between align-items-center mb-4">
-                            <h2><i class="fas fa-briefcase"></i> Gestione Opportunità</h2>
-                            <button class="btn btn-primary btn-custom">
-                                <i class="fas fa-plus"></i> Nuova Opportunità
-                            </button>
-                        </div>
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="table-responsive">
-                                    <table class="table table-hover">
-                                        <thead class="table-dark">
-                                            <tr>
-                                                <th>ID</th>
-                                                <th>Cliente</th>
-                                                <th>Tipo</th>
-                                                <th>Stato</th>
-                                                <th>Priorità</th>
-                                                <th>Assegnato a</th>
-                                                <th>Azioni</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr>
-                                                <td>#1001</td>
-                                                <td>Rossi Srl</td>
-                                                <td>Installazione</td>
-                                                <td><span class="badge bg-success">Completata</span></td>
-                                                <td><span class="badge bg-secondary">Normale</span></td>
-                                                <td>Mario Bianchi</td>
-                                                <td>
-                                                    <button class="btn btn-sm btn-outline-primary me-1">
-                                                        <i class="fas fa-eye"></i>
-                                                    </button>
-                                                    <button class="btn btn-sm btn-outline-warning me-1">
-                                                        <i class="fas fa-edit"></i>
-                                                    </button>
-                                                    <button class="btn btn-sm btn-outline-danger">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td>#1002</td>
-                                                <td>Verde Spa</td>
-                                                <td>Manutenzione</td>
-                                                <td><span class="badge bg-warning">In Corso</span></td>
-                                                <td><span class="badge bg-danger">Alta</span></td>
-                                                <td>Luca Verdi</td>
-                                                <td>
-                                                    <button class="btn btn-sm btn-outline-primary me-1">
-                                                        <i class="fas fa-eye"></i>
-                                                    </button>
-                                                    <button class="btn btn-sm btn-outline-warning me-1">
-                                                        <i class="fas fa-edit"></i>
-                                                    </button>
-                                                    <button class="btn btn-sm btn-outline-danger">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td>#1003</td>
-                                                <td>Neri & Co</td>
-                                                <td>Riparazione</td>
-                                                <td><span class="badge bg-info">Pianificata</span></td>
-                                                <td><span class="badge bg-warning">Media</span></td>
-                                                <td>Anna Neri</td>
-                                                <td>
-                                                    <button class="btn btn-sm btn-outline-primary me-1">
-                                                        <i class="fas fa-eye"></i>
-                                                    </button>
-                                                    <button class="btn btn-sm btn-outline-warning me-1">
-                                                        <i class="fas fa-edit"></i>
-                                                    </button>
-                                                    <button class="btn btn-sm btn-outline-danger">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    `;
+                        `;
+                    } else {
+                        content.innerHTML = '<div class="alert alert-warning">Impossibile caricare le opportunità. Verifica la connessione e l\'autenticazione.</div>';
+                    }
                     break;
                 case 'reports':
                     content.innerHTML = `

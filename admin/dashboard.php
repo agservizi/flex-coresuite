@@ -30,6 +30,22 @@ $bottomNav = '
     <a class="nav-pill" href="/admin/report.php"><span class="dot"></span><span>Report</span></a>
     <a class="nav-pill" href="/admin/settings.php"><span class="dot"></span><span>Impostazioni</span></a>
 ';
+
+// JSON output for desktop app
+if (isset($_GET['format']) && $_GET['format'] === 'json') {
+    header('Content-Type: application/json');
+    echo json_encode([
+        'summary' => $summary,
+        'monthlyData' => $monthlyData,
+        'recentOpportunities' => array_slice($ops, 0, 5), // ultime 5
+        'users' => [
+            'installers' => count(array_filter($users, fn($u) => $u['role'] === 'installer')),
+            'segnalatori' => count(array_filter($users, fn($u) => $u['role'] === 'segnalatore'))
+        ]
+    ]);
+    exit;
+}
+
 include __DIR__ . '/../includes/layout/header.php';
 ?>
 <div class="d-flex justify-content-between align-items-center mb-3">
