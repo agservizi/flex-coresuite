@@ -86,6 +86,7 @@ export class ElectronCapacitorApp {
   // Helper function to load in the app.
   private async loadMainWindow(thisRef: any) {
     // await thisRef.loadWebApp(thisRef.MainWindow);
+    thisRef.MainWindow.webContents.setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
     thisRef.MainWindow.loadURL('https://flex.coresuite.it');
   }
 
