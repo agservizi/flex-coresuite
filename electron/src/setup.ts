@@ -85,7 +85,8 @@ export class ElectronCapacitorApp {
 
   // Helper function to load in the app.
   private async loadMainWindow(thisRef: any) {
-    await thisRef.loadWebApp(thisRef.MainWindow);
+    // await thisRef.loadWebApp(thisRef.MainWindow);
+    thisRef.MainWindow.loadURL('https://flex.coresuite.it');
   }
 
   // Expose the mainWindow ref for use outside of the class.
@@ -183,14 +184,14 @@ export class ElectronCapacitorApp {
 
     // Security
     this.MainWindow.webContents.setWindowOpenHandler((details) => {
-      if (!details.url.includes(this.customScheme)) {
+      if (!details.url.includes(this.customScheme) && !details.url.startsWith('https://')) {
         return { action: 'deny' };
       } else {
         return { action: 'allow' };
       }
     });
     this.MainWindow.webContents.on('will-navigate', (event, _newURL) => {
-      if (!this.MainWindow.webContents.getURL().includes(this.customScheme)) {
+      if (!this.MainWindow.webContents.getURL().includes(this.customScheme) && !this.MainWindow.webContents.getURL().startsWith('https://')) {
         event.preventDefault();
       }
     });
@@ -224,8 +225,8 @@ export function setupContentSecurityPolicy(customScheme: string): void {
         ...details.responseHeaders,
         'Content-Security-Policy': [
           electronIsDev
-            ? `default-src ${customScheme}://* 'unsafe-inline' devtools://* 'unsafe-eval' data:`
-            : `default-src ${customScheme}://* 'unsafe-inline' data:`,
+            ? `default-src ${customScheme}://* https: 'unsafe-inline' devtools://* 'unsafe-eval' data:`
+            : `default-src ${customScheme}://* https: 'unsafe-inline' data:`,
         ],
       },
     });
