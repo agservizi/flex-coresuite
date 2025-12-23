@@ -5,106 +5,531 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Flex Coresuite - Desktop</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 0;
             height: 100vh;
             display: flex;
             flex-direction: column;
+            background-color: #f8f9fa;
         }
         .header {
-            background-color: #343a40;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 10px;
+            padding: 15px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 1.5rem;
         }
         .sidebar {
-            width: 250px;
-            background-color: #f8f9fa;
-            padding: 20px;
-            border-right: 1px solid #dee2e6;
-            height: calc(100vh - 60px);
+            width: 280px;
+            background-color: #ffffff;
+            padding: 20px 0;
+            border-right: 1px solid #e9ecef;
+            height: calc(100vh - 70px);
             position: fixed;
-            top: 60px;
+            top: 70px;
             left: 0;
-        }
-        .main-content {
-            margin-left: 250px;
-            padding: 20px;
-            flex: 1;
-            margin-top: 60px;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
         }
         .menu-item {
             display: block;
-            padding: 10px;
-            margin-bottom: 5px;
+            padding: 12px 20px;
+            margin: 5px 15px;
             text-decoration: none;
-            color: #333;
-            border-radius: 5px;
+            color: #495057;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-weight: 500;
         }
         .menu-item:hover {
-            background-color: #e9ecef;
+            background-color: #f8f9fa;
+            color: #007bff;
+            transform: translateX(5px);
+        }
+        .menu-item.active {
+            background-color: #007bff;
+            color: white;
+        }
+        .menu-item i {
+            margin-right: 10px;
+            width: 20px;
+        }
+        .main-content {
+            margin-left: 280px;
+            padding: 30px;
+            flex: 1;
+            margin-top: 70px;
+        }
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+        }
+        .btn-custom {
+            border-radius: 25px;
+            padding: 8px 20px;
+            font-weight: 500;
+        }
+        .stats-card {
+            text-align: center;
+            padding: 20px;
+        }
+        .stats-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #007bff;
+        }
+        .table {
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .badge-custom {
+            border-radius: 20px;
+            padding: 5px 12px;
         }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>Flex Coresuite - Desktop</h1>
+        <h1><i class="fas fa-building"></i> Flex Coresuite</h1>
         <div>
-            <button id="notifyBtn" class="btn btn-primary">Test Notifica</button>
-            <button id="cameraBtn" class="btn btn-secondary">Apri Fotocamera</button>
+            <button id="notifyBtn" class="btn btn-light btn-custom me-2">
+                <i class="fas fa-bell"></i> Notifiche
+            </button>
+            <button id="cameraBtn" class="btn btn-light btn-custom me-2">
+                <i class="fas fa-camera"></i> Fotocamera
+            </button>
+            <button id="locationBtn" class="btn btn-light btn-custom">
+                <i class="fas fa-map-marker-alt"></i> Posizione
+            </button>
         </div>
     </div>
     <div class="sidebar">
-        <h4>Menu</h4>
-        <a href="#" class="menu-item" onclick="loadContent('dashboard')">Dashboard</a>
-        <a href="#" class="menu-item" onclick="loadContent('opportunities')">Opportunità</a>
-        <a href="#" class="menu-item" onclick="loadContent('reports')">Report</a>
-        <a href="#" class="menu-item" onclick="loadContent('settings')">Impostazioni</a>
+        <nav>
+            <a href="#" class="menu-item active" onclick="loadContent('dashboard')">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+            </a>
+            <a href="#" class="menu-item" onclick="loadContent('opportunities')">
+                <i class="fas fa-briefcase"></i> Opportunità
+            </a>
+            <a href="#" class="menu-item" onclick="loadContent('reports')">
+                <i class="fas fa-chart-bar"></i> Report
+            </a>
+            <a href="#" class="menu-item" onclick="loadContent('settings')">
+                <i class="fas fa-cog"></i> Impostazioni
+            </a>
+        </nav>
     </div>
     <div class="main-content" id="mainContent">
-        <h2>Benvenuto nella versione Desktop</h2>
-        <p>Questa è un'interfaccia riprogettata per desktop, non responsive.</p>
+        <!-- Contenuto caricato dinamicamente -->
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const { Notification, dialog } = require('electron').remote;
+        const { Notification, dialog, ipcRenderer } = require('electron');
+
+        // Carica dashboard di default
+        loadContent('dashboard');
 
         document.getElementById('notifyBtn').addEventListener('click', () => {
             new Notification({
-                title: 'Test Notifica',
+                title: 'Flex Coresuite',
                 body: 'Questa è una notifica desktop!'
             }).show();
         });
 
         document.getElementById('cameraBtn').addEventListener('click', () => {
-            // Simula apertura fotocamera
             dialog.showMessageBox({
                 type: 'info',
                 title: 'Fotocamera',
-                message: 'Funzionalità fotocamera non implementata.'
+                message: 'Funzionalità fotocamera integrata con Capacitor.'
+            });
+        });
+
+        document.getElementById('locationBtn').addEventListener('click', () => {
+            dialog.showMessageBox({
+                type: 'info',
+                title: 'Posizione',
+                message: 'Rilevamento posizione GPS disponibile.'
             });
         });
 
         function loadContent(page) {
+            // Rimuovi classe active da tutti
+            document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
+            // Aggiungi active al corrente
+            event.target.classList.add('active');
+
             const content = document.getElementById('mainContent');
             switch(page) {
                 case 'dashboard':
-                    content.innerHTML = '<h2>Dashboard</h2><p>Contenuto dashboard...</p>';
+                    content.innerHTML = `
+                        <div class="row mb-4">
+                            <div class="col-md-3">
+                                <div class="card stats-card">
+                                    <h5>Opportunità Attive</h5>
+                                    <div class="stats-number">24</div>
+                                    <small class="text-muted">+12% questo mese</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card stats-card">
+                                    <h5>Installatori</h5>
+                                    <div class="stats-number">8</div>
+                                    <small class="text-muted">Attivi</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card stats-card">
+                                    <h5>Segnalatori</h5>
+                                    <div class="stats-number">15</div>
+                                    <small class="text-muted">Registrati</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card stats-card">
+                                    <h5>Report Generati</h5>
+                                    <div class="stats-number">156</div>
+                                    <small class="text-muted">Questo trimestre</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5><i class="fas fa-list"></i> Ultime Opportunità</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <table class="table table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>ID</th>
+                                                    <th>Cliente</th>
+                                                    <th>Stato</th>
+                                                    <th>Data</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>#1234</td>
+                                                    <td>Azienda XYZ</td>
+                                                    <td><span class="badge bg-success badge-custom">Completata</span></td>
+                                                    <td>2025-12-20</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>#1235</td>
+                                                    <td>Cliente ABC</td>
+                                                    <td><span class="badge bg-warning badge-custom">In Corso</span></td>
+                                                    <td>2025-12-22</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>#1236</td>
+                                                    <td>Impresa DEF</td>
+                                                    <td><span class="badge bg-danger badge-custom">Urgente</span></td>
+                                                    <td>2025-12-23</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5><i class="fas fa-calendar"></i> Eventi Oggi</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <ul class="list-unstyled">
+                                            <li class="mb-2">
+                                                <i class="fas fa-clock text-primary"></i> 10:00 - Riunione con cliente
+                                            </li>
+                                            <li class="mb-2">
+                                                <i class="fas fa-clock text-success"></i> 14:30 - Installazione completata
+                                            </li>
+                                            <li class="mb-2">
+                                                <i class="fas fa-clock text-warning"></i> 16:00 - Controllo qualità
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
                     break;
                 case 'opportunities':
-                    content.innerHTML = '<h2>Opportunità</h2><p>Lista opportunità...</p>';
+                    content.innerHTML = `
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h2><i class="fas fa-briefcase"></i> Gestione Opportunità</h2>
+                            <button class="btn btn-primary btn-custom">
+                                <i class="fas fa-plus"></i> Nuova Opportunità
+                            </button>
+                        </div>
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead class="table-dark">
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Cliente</th>
+                                                <th>Tipo</th>
+                                                <th>Stato</th>
+                                                <th>Priorità</th>
+                                                <th>Assegnato a</th>
+                                                <th>Azioni</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>#1001</td>
+                                                <td>Rossi Srl</td>
+                                                <td>Installazione</td>
+                                                <td><span class="badge bg-success">Completata</span></td>
+                                                <td><span class="badge bg-secondary">Normale</span></td>
+                                                <td>Mario Bianchi</td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-outline-primary me-1">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-warning me-1">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-danger">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>#1002</td>
+                                                <td>Verde Spa</td>
+                                                <td>Manutenzione</td>
+                                                <td><span class="badge bg-warning">In Corso</span></td>
+                                                <td><span class="badge bg-danger">Alta</span></td>
+                                                <td>Luca Verdi</td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-outline-primary me-1">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-warning me-1">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-danger">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>#1003</td>
+                                                <td>Neri & Co</td>
+                                                <td>Riparazione</td>
+                                                <td><span class="badge bg-info">Pianificata</span></td>
+                                                <td><span class="badge bg-warning">Media</span></td>
+                                                <td>Anna Neri</td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-outline-primary me-1">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-warning me-1">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-danger">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    `;
                     break;
                 case 'reports':
-                    content.innerHTML = '<h2>Report</h2><p>Report e statistiche...</p>';
+                    content.innerHTML = `
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h2><i class="fas fa-chart-bar"></i> Report e Analisi</h2>
+                            <div>
+                                <button class="btn btn-success btn-custom me-2">
+                                    <i class="fas fa-download"></i> Esporta PDF
+                                </button>
+                                <button class="btn btn-info btn-custom">
+                                    <i class="fas fa-share"></i> Condividi
+                                </button>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5>Performance Installatori</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="performanceChart" width="400" height="200"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5>Stati Opportunità</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="statusChart" width="400" height="200"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card mt-4">
+                            <div class="card-header">
+                                <h5>Report Dettagliato</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label>Data Inizio</label>
+                                            <input type="date" class="form-control" value="2025-12-01">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label>Data Fine</label>
+                                            <input type="date" class="form-control" value="2025-12-23">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label>Tipo Report</label>
+                                            <select class="form-control">
+                                                <option>Installazioni</option>
+                                                <option>Manutenzioni</option>
+                                                <option>Riparazioni</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label>&nbsp;</label>
+                                            <button class="btn btn-primary form-control">
+                                                <i class="fas fa-search"></i> Genera Report
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
                     break;
                 case 'settings':
-                    content.innerHTML = '<h2>Impostazioni</h2><p>Configurazioni...</p>';
+                    content.innerHTML = `
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h2><i class="fas fa-cog"></i> Impostazioni Sistema</h2>
+                            <button class="btn btn-success btn-custom">
+                                <i class="fas fa-save"></i> Salva Modifiche
+                            </button>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5>Notifiche</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="form-check mb-3">
+                                            <input class="form-check-input" type="checkbox" id="emailNotif" checked>
+                                            <label class="form-check-label" for="emailNotif">
+                                                Notifiche Email
+                                            </label>
+                                        </div>
+                                        <div class="form-check mb-3">
+                                            <input class="form-check-input" type="checkbox" id="pushNotif" checked>
+                                            <label class="form-check-label" for="pushNotif">
+                                                Notifiche Push
+                                            </label>
+                                        </div>
+                                        <div class="form-check mb-3">
+                                            <input class="form-check-input" type="checkbox" id="smsNotif">
+                                            <label class="form-check-label" for="smsNotif">
+                                                Notifiche SMS
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5>Sicurezza</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="form-group mb-3">
+                                            <label>Password Corrente</label>
+                                            <input type="password" class="form-control" placeholder="••••••••">
+                                        </div>
+                                        <div class="form-group mb-3">
+                                            <label>Nuova Password</label>
+                                            <input type="password" class="form-control" placeholder="••••••••">
+                                        </div>
+                                        <div class="form-group mb-3">
+                                            <label>Conferma Password</label>
+                                            <input type="password" class="form-control" placeholder="••••••••">
+                                        </div>
+                                        <button class="btn btn-warning btn-custom">
+                                            <i class="fas fa-key"></i> Cambia Password
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card mt-4">
+                            <div class="card-header">
+                                <h5>Preferenze Applicazione</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label>Lingua</label>
+                                            <select class="form-control">
+                                                <option>Italiano</option>
+                                                <option>English</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label>Tema</label>
+                                            <select class="form-control">
+                                                <option>Chiaro</option>
+                                                <option>Scuro</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label>Auto-salvataggio</label>
+                                            <select class="form-control">
+                                                <option>Ogni 5 minuti</option>
+                                                <option>Ogni 10 minuti</option>
+                                                <option>Manuale</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
                     break;
             }
         }
